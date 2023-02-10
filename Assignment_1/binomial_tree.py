@@ -9,8 +9,10 @@ import numpy as np
 from numba import njit
 from time import time
 from scipy.stats import norm
+import matplotlib.pyplot as plt
 
-@njit
+
+# @njit
 def buildTree(S, vol, T, N):
     """
     Build binomial tree containing possible stock prices at discrete time 
@@ -34,7 +36,8 @@ def buildTree(S, vol, T, N):
     
     return matrix
 
-@njit
+
+# @njit
 def valueOptionMatrix(tree, T, r, K, vol):
     """
     Given an binomial tree with stock prices at every dt, iterate backwards
@@ -78,6 +81,7 @@ def BlackScholesAnalytical(S, K, r, T, vol):
     V = S*N_d1 - np.exp(-r*T)*K*N_d2
     return V
 
+
 ############################## TEST CASE ######################################
 
 # sigma = 0.1
@@ -92,7 +96,7 @@ def BlackScholesAnalytical(S, K, r, T, vol):
 # matrix = valueOptionMatrix(tree, T, r, K, sigma)
 # print(tree)
 
-############################## Experiment #####################################
+################### Black Scholes - Bonimial Tree Comparisson #################
 
 sigma = 0.2
 S = 100
@@ -103,10 +107,90 @@ r = 0.06
 
 tree = buildTree(S, sigma, T, N)
 matrix = valueOptionMatrix(tree, T, r, K, sigma)
-print(tree[0][0])
+print("Option Value at t=0 evaluated using binomial tree with 50 steps = ", matrix[0][0])
 black_scholes_value = BlackScholesAnalytical(S, K, r, T, sigma)
-print(black_scholes_value)
+print("Option Value at t=0 evaluated using analytical Black Scholes Equation = ",black_scholes_value)
 
+########################### Studying Convergence ##############################
+
+
+def convergence_analysis(N_low, N_high, S, T, K, r, sigma):
+    
+    all_N = np.arange(N_low, N_high+1)
+    values = np.zeros(np.shape(all_N))
+    times = np.zeros(np.shape(all_N))
+    i = 0
+    for N in all_N:
+        start = time()
+        
+        tree = buildTree(S, sigma, T, N)
+        value = valueOptionMatrix(tree, T, r, K, sigma)[0][0]
+        
+        end = time()
+        
+        values[i] = value
+        
+        elapsed_time = end-start
+        times[i] = elapsed_time
+        
+        values[i] = value
+        i += 1
+    
+    return all_N, values, times
+    
+
+def PlotOptionValue(all_N, values, black_scholes_value):
+    # Plot Initial Option value as a function of N
+    plt.plot(all_N, values, 'b', label = "Binomial Tree")
+    plt.plot(all_N, np.ones(len(all_N))*black_scholes_value, 'r', label = "Analytical Black Scholes Solution")
+    plt.legend()
+    plt.grid("both")
+    plt.ylabel("Option Value at t=0")
+    plt.xlabel("N")
+    plt.tight_layout()
+    plt.show()
+    
+
+def PlotAbsoluteDifference(all_N, values, black_scholes_value):
+    # Plot abolute value of difference between Binomial Tree valuation and 
+    # analytical valuation of Black Scholes Model
+    
+    absolute_difference = np.abs(values-black_scholes_value)
+    plt.plot(all_N, absolute_difference, color='green')
+    plt.grid("both")
+    plt.ylabel("Absolute Difference")
+    plt.xlabel("N")
+    plt.tight_layout()
+    plt.show()
+
+def PlotTime(all_N, times):
+    
+    plt.plot(all_N[1:], times[1:], color='black')
+    plt.grid("both")
+    plt.ylabel("Time [s]")
+    plt.xlabel("N")
+    plt.tight_layout()
+    plt.show()
+    
+    
+N_low = 1
+N_high = 1000
+
+all_N, values , times = convergence_analysis(N_low, N_high, S, T, K, r, sigma)
+
+# Plot Initial Option value as a function of N
+PlotOptionValue(all_N, values,black_scholes_value)
+
+# Plot absolute difference from Black Scholes
+PlotAbsoluteDifference(all_N, values, black_scholes_value)
+
+# Plot time as a function of N
+PlotTime(all_N, times)
+
+    
+
+
+    
 
 
 
