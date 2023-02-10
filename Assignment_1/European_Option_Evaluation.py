@@ -133,6 +133,9 @@ def convergence_analysis(N_low, N_high, S, T, K, r, sigma):
 
 def PlotOptionValue(all_N, values, black_scholes_value):
     # Plot Initial Option value as a function of N
+    low_N = all_N[0]
+    high_N = all_N[-1]
+    
     plt.plot(all_N, values, 'b', label = "Binomial Tree")
     plt.plot(all_N, np.ones(len(all_N))*black_scholes_value, 'r', label = "Analytical Black Scholes Solution")
     plt.legend()
@@ -140,12 +143,15 @@ def PlotOptionValue(all_N, values, black_scholes_value):
     plt.ylabel("Option Value at t=0")
     plt.xlabel("N")
     plt.tight_layout()
+    plt.savefig(f'./European_Option_Results/option_value_{low_N}N_to_{high_N}N.pdf', format="pdf")
     plt.show()
     
 
 def PlotAbsoluteDifference(all_N, values, black_scholes_value):
     # Plot abolute value of difference between Binomial Tree valuation and 
     # analytical valuation of Black Scholes Model
+    low_N = all_N[0]
+    high_N = all_N[-1]
     
     absolute_difference = np.abs(values-black_scholes_value)
     plt.plot(all_N, absolute_difference, color='green')
@@ -153,6 +159,7 @@ def PlotAbsoluteDifference(all_N, values, black_scholes_value):
     plt.ylabel("Absolute Difference")
     plt.xlabel("N")
     plt.tight_layout()
+    plt.savefig(f'./European_Option_Results/absolute_difference_{low_N}N_to_{high_N}N.pdf', format="pdf")
     plt.show()
 
 
@@ -161,11 +168,22 @@ N_high = 1000
 
 all_N, values = convergence_analysis(N_low, N_high, S, T, K, r, sigma)
 
-# Plot Initial Option value as a function of N
+# Plot all values of N
 PlotOptionValue(all_N, values,black_scholes_value)
-
-# Plot absolute difference from Black Scholes
 PlotAbsoluteDifference(all_N, values, black_scholes_value)
+
+# Create graphs of certain ranges
+start = 10
+stop = 100 
+PlotOptionValue(all_N[start:stop], values[start:stop], black_scholes_value)
+PlotAbsoluteDifference(all_N[start:stop], values[start:stop], black_scholes_value)
+
+start = 100
+stop = 1000 
+PlotOptionValue(all_N[start:stop], values[start:stop], black_scholes_value)
+PlotAbsoluteDifference(all_N[start:stop], values[start:stop], black_scholes_value)
+
+
 
 
 
