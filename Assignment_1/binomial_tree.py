@@ -118,25 +118,17 @@ def convergence_analysis(N_low, N_high, S, T, K, r, sigma):
     
     all_N = np.arange(N_low, N_high+1)
     values = np.zeros(np.shape(all_N))
-    times = np.zeros(np.shape(all_N))
     i = 0
+    
     for N in all_N:
-        start = time()
         
         tree = buildTree(S, sigma, T, N)
         value = valueOptionMatrix(tree, T, r, K, sigma)[0][0]
-        
-        end = time()
-        
-        values[i] = value
-        
-        elapsed_time = end-start
-        times[i] = elapsed_time
-        
+    
         values[i] = value
         i += 1
     
-    return all_N, values, times
+    return all_N, values
     
 
 def PlotOptionValue(all_N, values, black_scholes_value):
@@ -163,20 +155,11 @@ def PlotAbsoluteDifference(all_N, values, black_scholes_value):
     plt.tight_layout()
     plt.show()
 
-def PlotTime(all_N, times):
-    
-    plt.plot(all_N[1:], times[1:], color='black')
-    plt.grid("both")
-    plt.ylabel("Time [s]")
-    plt.xlabel("N")
-    plt.tight_layout()
-    plt.show()
-    
-    
-N_low = 1
-N_high = 1000
 
-all_N, values , times = convergence_analysis(N_low, N_high, S, T, K, r, sigma)
+N_low = 1
+N_high = 100
+
+all_N, values = convergence_analysis(N_low, N_high, S, T, K, r, sigma)
 
 # Plot Initial Option value as a function of N
 PlotOptionValue(all_N, values,black_scholes_value)
@@ -184,8 +167,7 @@ PlotOptionValue(all_N, values,black_scholes_value)
 # Plot absolute difference from Black Scholes
 PlotAbsoluteDifference(all_N, values, black_scholes_value)
 
-# Plot time as a function of N
-PlotTime(all_N, times)
+
 
     
 
