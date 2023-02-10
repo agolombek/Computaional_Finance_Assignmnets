@@ -12,7 +12,7 @@ from scipy.stats import norm
 import matplotlib.pyplot as plt
 
 
-# @njit
+@njit
 def buildTree(S, vol, T, N):
     """
     Build binomial tree containing possible stock prices at discrete time 
@@ -37,7 +37,7 @@ def buildTree(S, vol, T, N):
     return matrix
 
 
-# @njit
+@njit
 def valueOptionMatrix(tree, T, r, K, vol):
     """
     Given an binomial tree with stock prices at every dt, iterate backwards
