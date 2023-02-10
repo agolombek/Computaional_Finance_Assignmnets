@@ -8,6 +8,7 @@ Created on Tue Feb  7 15:25:50 2023
 import numpy as np
 from numba import njit
 from time import time
+from scipy.stats import norm
 
 @njit
 def buildTree(S, vol, T, N):
@@ -65,6 +66,18 @@ def valueOptionMatrix(tree, T, r, K, vol):
     return tree
 
 
+def BlackScholesAnalytical(S, K, r, T, vol):
+    """
+    Caluclates the anayltical solution for the value of a European call option
+    given by the Black Scholes Equations.
+    """
+    d1 = (np.log(S/K) + (r+0.5*vol**2)*T)/(vol*np.sqrt(T))
+    d2 = d1 - vol*np.sqrt(T)
+    N_d1 = norm.cdf(d1)
+    N_d2 = norm.cdf(d2)
+    V = S*N_d1 - np.exp(-r*T)*K*N_d2
+    return V
+
 ############################## TEST CASE ######################################
 
 # sigma = 0.1
@@ -84,18 +97,17 @@ def valueOptionMatrix(tree, T, r, K, vol):
 sigma = 0.2
 S = 100
 T = 1
-N = 5000
+N = 50
 K = 99
 r = 0.06
-
-start = time()
 
 tree = buildTree(S, sigma, T, N)
 matrix = valueOptionMatrix(tree, T, r, K, sigma)
 print(tree[0][0])
+black_scholes_value = BlackScholesAnalytical(S, K, r, T, sigma)
+print(black_scholes_value)
 
-end = time()
-print("Runtime = ", end- start, " seconds")
+
 
 
 
