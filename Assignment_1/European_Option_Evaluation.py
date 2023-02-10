@@ -133,7 +133,7 @@ def convergence_analysis(N_low, N_high, S, T, K, r, sigma):
     
 
 N_low = 1
-N_high = 10000
+N_high = 1000
 
 all_N, values = convergence_analysis(N_low, N_high, S, T, K, r, sigma)
 
