@@ -39,7 +39,7 @@ def buildTree(S, vol, T, N):
 
 
 @njit
-def valueOptionMatrix(tree, T, r, K, vol):
+def EuropeanOptionValueMatrix(tree, T, r, K, vol):
     """
     Given an binomial tree with stock prices at every dt, iterate backwards
     through the tree to calculate the value of the option at every point.
@@ -107,7 +107,7 @@ K = 99
 r = 0.06
 
 tree = buildTree(S, sigma, T, N)
-matrix = valueOptionMatrix(tree, T, r, K, sigma)
+matrix = EuropeanOptionValueMatrix(tree, T, r, K, sigma)
 print("Option Value at t=0 evaluated using binomial tree with 50 steps = ", matrix[0][0])
 black_scholes_value = BlackScholesAnalytical(S, K, r, T, sigma)
 print("Option Value at t=0 evaluated using analytical Black Scholes Equation = ",black_scholes_value)
@@ -124,7 +124,7 @@ def convergence_analysis(N_low, N_high, S, T, K, r, sigma):
     for N in all_N:
         
         tree = buildTree(S, sigma, T, N)
-        value = valueOptionMatrix(tree, T, r, K, sigma)[0][0]
+        value = EuropeanOptionValueMatrix(tree, T, r, K, sigma)[0][0]
     
         values[i] = value
         i += 1
