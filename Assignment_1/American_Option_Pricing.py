@@ -88,33 +88,59 @@ def AmericanOptionValueMatrix(tree, T, r, K, vol, option_type):
     return tree
 
 
+##################### Values for Comparisson to European ######################
+sigma = 0.2
+S = 100
+T = 1
+N = 50
+K = 99
+r = 0.06
+
+option_type = "call"
+tree = buildTree(S, sigma, T, N)
+matrix = AmericanOptionValueMatrix(tree, T, r, K, sigma, option_type)
+print("Call Option Value at t=0 evaluated using binomial tree with 50 steps = ", matrix[0][0])
+
+option_type = "put"
+tree = buildTree(S, sigma, T, N)
+matrix = AmericanOptionValueMatrix(tree, T, r, K, sigma, option_type)
+print("Put Option Value at t=0 evaluated using binomial tree with 50 steps = ", matrix[0][0])
+
 ########################### Studying Convergence ##############################
 
-
-# def convergence_analysis(N_low, N_high, S, T, K, r, sigma):
+def convergence_analysis(N_low, N_high, S, T, K, r, sigma, option_type):
     
-#     all_N = np.arange(N_low, N_high+1)
-#     values = np.zeros(np.shape(all_N))
-#     i = 0
+    all_N = np.arange(N_low, N_high+1)
+    values = np.zeros(np.shape(all_N))
+    i = 0
     
-#     for N in all_N:
+    for N in all_N:
         
-#         tree = buildTree(S, sigma, T, N)
-#         value = valueOptionMatrix(tree, T, r, K, sigma)[0][0]
+        tree = buildTree(S, sigma, T, N)
+        value = AmericanOptionValueMatrix(tree, T, r, K, sigma, option_type)[0][0]
     
-#         values[i] = value
-#         i += 1
+        values[i] = value
+        i += 1
     
-#     return all_N, values
+    return all_N, values
     
 
-# N_low = 1
-# N_high = 1000
+N_low = 1
+N_high = 1000
 
-# all_N, values = convergence_analysis(N_low, N_high, S, T, K, r, sigma)
 
-# dictionary = {"N values": all_N, "Option Valuation": values, "Black Scholes": black_scholes_value}
-# df = pd.DataFrame(dictionary)
-# df.to_csv("./European_Option_Results/european_option_evaluation.csv", index=False)
+# Call Option
+all_N, values = convergence_analysis(N_low, N_high, S, T, K, r, sigma, "call")
+
+dictionary = {"N values": all_N, "Option Valuation": values}
+df = pd.DataFrame(dictionary)
+df.to_csv("./American_Option_Results/ame_call_varying_N.csv", index=False)
+
+# Put Option
+all_N, values = convergence_analysis(N_low, N_high, S, T, K, r, sigma, "put")
+
+dictionary = {"N values": all_N, "Option Valuation": values}
+df = pd.DataFrame(dictionary)
+df.to_csv("./American_Option_Results/ame_put_varying_N.csv", index=False)
 
 ########################### Studying Volatility ##############################

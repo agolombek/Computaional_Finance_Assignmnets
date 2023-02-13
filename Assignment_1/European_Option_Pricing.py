@@ -39,7 +39,7 @@ def buildTree(S, vol, T, N):
 
 
 @njit
-def EuropeanOptionValueMatrix(tree, T, r, K, vol):
+def EuropeanOptionValueMatrix(tree, T, r, K, vol, option_type):
     """
     Given an binomial tree with stock prices at every dt, iterate backwards
     through the tree to calculate the value of the option at every point.
@@ -55,10 +55,17 @@ def EuropeanOptionValueMatrix(tree, T, r, K, vol):
     
     p = (np.exp(r*dt)-d)/(u-d)
     
-    # Calculate Payoff of option in the last row
-    for c in np.arange(columns):
-        S = tree[rows-1, c]
-        tree[rows-1, c] = np.maximum(S-K, 0)
+    if option_type == "call":
+        # Calculate Payoff of option in the last row
+        for c in np.arange(columns):
+            S = tree[rows-1, c]
+            tree[rows-1, c] = np.maximum(S-K, 0)
+    
+    elif option_type == "put":
+        # Calculate Payoff of option in the last row
+        for c in np.arange(columns):
+            S = tree[rows-1, c]
+            tree[rows-1, c] = np.maximum(K-S, 0)
     
     # Iterate backwards through the tree
     for i in np.arange(rows-1)[::-1]:
@@ -97,7 +104,7 @@ def BlackScholesAnalytical(S, K, r, T, vol):
 # matrix = valueOptionMatrix(tree, T, r, K, sigma)
 # print(tree)
 
-################### Black Scholes - Bonimial Tree Comparisson #################
+################### Black Scholes - Binomial Tree Comparisson #################
 
 sigma = 0.2
 S = 100
@@ -107,15 +114,27 @@ K = 99
 r = 0.06
 
 tree = buildTree(S, sigma, T, N)
-matrix = EuropeanOptionValueMatrix(tree, T, r, K, sigma)
-print("Option Value at t=0 evaluated using binomial tree with 50 steps = ", matrix[0][0])
+
+option_type = "call"
+matrix = EuropeanOptionValueMatrix(tree, T, r, K, sigma, option_type)
+print("Call Option Value at t=0 evaluated using binomial tree with 50 steps = ", matrix[0][0])
 black_scholes_value = BlackScholesAnalytical(S, K, r, T, sigma)
-print("Option Value at t=0 evaluated using analytical Black Scholes Equation = ",black_scholes_value)
+print("Call Option Value at t=0 evaluated using analytical Black Scholes Equation = ",black_scholes_value)
+
+tree = buildTree(S, sigma, T, N)
+option_type = "put"
+matrix = EuropeanOptionValueMatrix(tree, T, r, K, sigma, option_type)
+print("Put Option Value at t=0 evaluated using binomial tree with 50 steps = ", matrix[0][0])
 
 ########################### Studying Convergence ##############################
 
+"""
+Studying the Convergence of a European Call Option for increasing number of
+steps (N) and compared against the analystical solution given by the closed
+form solution of the Black Scholes Equations.
+"""
 
-def convergence_analysis(N_low, N_high, S, T, K, r, sigma):
+def convergence_analysis(N_low, N_high, S, T, K, r, sigma, option_type):
     
     all_N = np.arange(N_low, N_high+1)
     values = np.zeros(np.shape(all_N))
@@ -124,7 +143,7 @@ def convergence_analysis(N_low, N_high, S, T, K, r, sigma):
     for N in all_N:
         
         tree = buildTree(S, sigma, T, N)
-        value = EuropeanOptionValueMatrix(tree, T, r, K, sigma)[0][0]
+        value = EuropeanOptionValueMatrix(tree, T, r, K, sigma, option_type)[0][0]
     
         values[i] = value
         i += 1
@@ -135,13 +154,24 @@ def convergence_analysis(N_low, N_high, S, T, K, r, sigma):
 N_low = 1
 N_high = 1000
 
-all_N, values = convergence_analysis(N_low, N_high, S, T, K, r, sigma)
+# Call Option
+all_N, values = convergence_analysis(N_low, N_high, S, T, K, r, sigma, "call")
 
 dictionary = {"N values": all_N, "Option Valuation": values, "Black Scholes": black_scholes_value}
 df = pd.DataFrame(dictionary)
-df.to_csv("./European_Option_Results/european_option_evaluation.csv", index=False)
+df.to_csv("./European_Option_Results/eur_call_varying_N.csv", index=False)
+
+# Put Option
+all_N, values = convergence_analysis(N_low, N_high, S, T, K, r, sigma, "put")
+
+dictionary = {"N values": all_N, "Option Valuation": values}
+df = pd.DataFrame(dictionary)
+df.to_csv("./European_Option_Results/eur_put_varying_N.csv", index=False)
 
 
+######################### Hedge Parameter Analysis ############################
+
+# Caluclate Hedge Parameter for different Volatilities and compare to Black Scholes
 
 
 
