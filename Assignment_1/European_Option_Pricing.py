@@ -11,6 +11,7 @@ from time import time
 from scipy.stats import norm
 import matplotlib.pyplot as plt
 import pandas as pd
+from copy import copy
 
 
 @njit
@@ -151,35 +152,77 @@ def convergence_analysis(N_low, N_high, S, T, K, r, sigma, option_type):
     return all_N, values
     
 
-N_low = 1
-N_high = 1000
+# N_low = 1
+# N_high = 1000
 
-# Call Option
-all_N, values = convergence_analysis(N_low, N_high, S, T, K, r, sigma, "call")
+# # Call Option
+# all_N, values = convergence_analysis(N_low, N_high, S, T, K, r, sigma, "call")
 
-dictionary = {"N values": all_N, "Option Valuation": values, "Black Scholes": black_scholes_value}
-df = pd.DataFrame(dictionary)
-df.to_csv("./European_Option_Results/eur_call_varying_N.csv", index=False)
+# dictionary = {"N values": all_N, "Option Valuation": values, "Black Scholes": black_scholes_value}
+# df = pd.DataFrame(dictionary)
+# df.to_csv("./European_Option_Results/eur_call_varying_N.csv", index=False)
 
-# Put Option
-all_N, values = convergence_analysis(N_low, N_high, S, T, K, r, sigma, "put")
+# # Put Option
+# all_N, values = convergence_analysis(N_low, N_high, S, T, K, r, sigma, "put")
 
-dictionary = {"N values": all_N, "Option Valuation": values}
-df = pd.DataFrame(dictionary)
-df.to_csv("./European_Option_Results/eur_put_varying_N.csv", index=False)
+# dictionary = {"N values": all_N, "Option Valuation": values}
+# df = pd.DataFrame(dictionary)
+# df.to_csv("./European_Option_Results/eur_put_varying_N.csv", index=False)
 
 
 ######################### Hedge Parameter Analysis ############################
 
 # Caluclate Hedge Parameter for different Volatilities and compare to Black Scholes
 
+def BlackScholesHedge(S, K, r, T, vol):
+    """
+    Hedge parameter determined by Black Scholes Equation
+    """
+    d1 = (np.log(S/K) + (r+0.5*vol**2)*T)/(vol*np.sqrt(T))
+    N_d1 = norm.cdf(d1)
+    return N_d1
 
 
-
-
+def Hedge_t0_BinomialTree(S, N, T, K, r, sigma, option_type):
+    
+    tree = buildTree(S, sigma, T, N)
+    tree_copy = copy(tree)
+    valuematrix = EuropeanOptionValueMatrix(tree, T, r, K, sigma, option_type)
+    delta_hedge = (valuematrix[1][1] - valuematrix[1][0])/(tree_copy[1][1] - tree_copy[1][0])
+    return delta_hedge
     
 
+sigma = 0.2
+S = 100
+T = 1
+N = 50
+K = 99
+r = 0.06
 
+option_type = "call"
+print("Call Option Delta at t=0 evaluated using binomial tree with 50 steps = ", Hedge_t0_BinomialTree(S, N, T, K, r, sigma, option_type))
+print("Call Option Delta at t=0 evaluated using analytical Black Scholes Equation = ", BlackScholesHedge(S, K, r, T, sigma))
+    
+
+# Compare Heding Paramter of both methods over differen volatilities
+
+volatilities = np.linspace(0.01, 6, 1000)
+BS_hedge = []
+BT_hedge = []
+
+for sigma in volatilities:
+    BT_hedge.append(Hedge_t0_BinomialTree(S, N, T, K, r, sigma, option_type))
+    BS_hedge.append(BlackScholesHedge(S, K, r, T, sigma))
+
+plt.plot(volatilities, BT_hedge, color='b', label='Binomial Tree')
+plt.plot(volatilities, BS_hedge, color='black', label='Black Scholes', linestyle='dashed')
+plt.xlabel(r"$\sigma$")
+plt.ylabel(r'$\Delta_{0}$')
+plt.legend()
+plt.grid()
+plt.tight_layout()
+plt.savefig('./European_Option_Results/call_option_hedge_varying_sigma.pdf', format="pdf")
+plt.show()    
     
 
 

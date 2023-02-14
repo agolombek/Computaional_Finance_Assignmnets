@@ -11,31 +11,8 @@ from time import time
 from scipy.stats import norm
 import matplotlib.pyplot as plt
 import pandas as pd
-
-
-@njit
-def buildTree(S, vol, T, N):
-    """
-    Build binomial tree containing possible stock prices at discrete time 
-    steps dt. Each row in the output matrix advances the time.
-    
-    S = Stock price at t=0
-    vol = volatility
-    T = maturity time
-    N = number of time steps taken until T
-    """
-    dt = T/N
-    
-    matrix = np.zeros((N+1, N+1))
-    
-    u = np.exp(vol*np.sqrt(dt))
-    d = np.exp(-vol*np.sqrt(dt))
-    
-    for i in np.arange(N+1):
-        for j in np.arange(i+1):
-            matrix[i,j] = S * u**j * d**(i-j)
-    
-    return matrix
+from copy import copy
+from European_Option_Pricing import EuropeanOptionValueMatrix, buildTree
 
 
 @njit
@@ -125,22 +102,61 @@ def convergence_analysis(N_low, N_high, S, T, K, r, sigma, option_type):
     return all_N, values
     
 
-N_low = 1
-N_high = 1000
+# N_low = 1
+# N_high = 1000
 
 
-# Call Option
-all_N, values = convergence_analysis(N_low, N_high, S, T, K, r, sigma, "call")
+# # Call Option
+# all_N, values = convergence_analysis(N_low, N_high, S, T, K, r, sigma, "call")
 
-dictionary = {"N values": all_N, "Option Valuation": values}
-df = pd.DataFrame(dictionary)
-df.to_csv("./American_Option_Results/ame_call_varying_N.csv", index=False)
+# dictionary = {"N values": all_N, "Option Valuation": values}
+# df = pd.DataFrame(dictionary)
+# df.to_csv("./American_Option_Results/ame_call_varying_N.csv", index=False)
 
-# Put Option
-all_N, values = convergence_analysis(N_low, N_high, S, T, K, r, sigma, "put")
+# # Put Option
+# all_N, values = convergence_analysis(N_low, N_high, S, T, K, r, sigma, "put")
 
-dictionary = {"N values": all_N, "Option Valuation": values}
-df = pd.DataFrame(dictionary)
-df.to_csv("./American_Option_Results/ame_put_varying_N.csv", index=False)
+# dictionary = {"N values": all_N, "Option Valuation": values}
+# df = pd.DataFrame(dictionary)
+# df.to_csv("./American_Option_Results/ame_put_varying_N.csv", index=False)
 
 ########################### Studying Volatility ##############################
+
+S = 100
+T = 1
+N = 50
+K = 99
+r = 0.06
+
+volatilities = np.linspace(0.01, 10, 1000)
+ame_call = []
+ame_put = []
+eur_call = []
+eur_put = []
+
+for sigma in volatilities:
+    tree = buildTree(S, sigma, T, N)
+    tree1 = copy(tree)
+    tree2 = copy(tree)
+    tree3 = copy(tree)
+    
+    option_type = "call"
+    ame_call.append(AmericanOptionValueMatrix(tree, T, r, K, sigma, option_type)[0][0])
+    eur_call.append(EuropeanOptionValueMatrix(tree1, T, r, K, sigma, option_type)[0][0])
+    
+    option_type = "put"
+    ame_put.append(AmericanOptionValueMatrix(tree2, T, r, K, sigma, option_type)[0][0])
+    eur_put.append(EuropeanOptionValueMatrix(tree3, T, r, K, sigma, option_type)[0][0])
+
+
+plt.plot(volatilities, ame_call, color='red', label='American Call Option')
+plt.plot(volatilities, eur_call, color='b', label='European Call Option', linestyle='dashed')
+plt.plot(volatilities, ame_put, color='orange', label='American Put Option')
+plt.plot(volatilities, eur_put, color='green', label='European Put Option', linestyle='dashed')
+plt.xlabel(r"$\sigma$")
+plt.ylabel('Option Value at t= 0')
+plt.legend()
+plt.grid()
+plt.tight_layout()
+plt.savefig('./American_Option_Results/option_value_varying_sigma.pdf', format="pdf")
+plt.show()    
