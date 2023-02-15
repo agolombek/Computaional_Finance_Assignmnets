@@ -9,6 +9,7 @@ import numpy as np
 from numba import njit
 import matplotlib.pyplot as plt
 import pandas as pd
+from scipy.stats import norm
 
 @njit
 def Black_Scholes_Euler(S0, r, N, T, sigma, seed):
@@ -28,7 +29,15 @@ def Black_Scholes_Euler(S0, r, N, T, sigma, seed):
         S_values[i] = S 
     return t_values, S_values
     
+
+def BlackScholesHedge(S_array, K, r, T, t_array, sigma):
     
+    tau = T - t_array[:-1]
+    S_array = S_array[:-1]
+    d1 = (np.log(S_array/K) + (r+0.5*sigma**2)*tau)/(sigma*np.sqrt(tau))
+    N_d1 = norm.cdf(d1)
+    
+    return N_d1
     
 sigma = 0.2
 S0 = 100
@@ -39,13 +48,26 @@ r = 0.06
 
 seed = 0
 
-for i in range(50):
+for i in range(10):
     t, S = Black_Scholes_Euler(S0, r, N, T, sigma, seed)
+    delta = BlackScholesHedge(S, K, r, T, t, sigma)
     seed += 1
+    plt.subplot(211)
     plt.plot(t, S)
-
+    
+    plt.subplot(212)
+    plt.plot(t[:-1], delta)
+    
+plt.subplot(211)
 plt.xlabel('time')
 plt.ylabel(r'$S_{t}$')
+plt.grid()
+
+    
+   
+plt.subplot(212)
+plt.xlabel('time')
+plt.ylabel(r'$\Delta$')
 plt.grid()
 plt.show()
     
