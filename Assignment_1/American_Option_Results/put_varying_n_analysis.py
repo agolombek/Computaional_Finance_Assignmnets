@@ -18,10 +18,14 @@ def PlotOptionValue(all_N, values, option_type):
     high_N = all_N[-1]
     
     plt.plot(all_N, values, 'orange', label = "American Put Option")
-    plt.legend()
+    plt.legend(fontsize=14)
     plt.grid("both")
-    plt.ylabel("Option Value at t=0")
-    plt.xlabel("N")
+    plt.ylabel("Option Value at t=0", fontsize=16)
+    plt.xlabel("N", fontsize=16)
+    plt.yscale('log')
+    plt.xscale('log')
+    plt.xticks(fontsize=16)
+    plt.yticks(fontsize=16)
     plt.tight_layout()
     plt.savefig(f'./{option_type}/option_value_{low_N}N_to_{high_N}N.pdf', format="pdf")
     plt.show()
@@ -39,16 +43,11 @@ PlotOptionValue(all_N, values, "put")
 
 
 # Create graphs of certain ranges
-start = 10
-stop = 100 
+start = 99
+stop = 10000
 PlotOptionValue(all_N[start:stop], values[start:stop], "put")
 
-
-start = 100
-stop = 1000
+start = 999
+stop = 10000
 PlotOptionValue(all_N[start:stop], values[start:stop], "put")
 
-
-start = 900
-stop = 1000
-PlotOptionValue(all_N[start:stop], values[start:stop], "put")

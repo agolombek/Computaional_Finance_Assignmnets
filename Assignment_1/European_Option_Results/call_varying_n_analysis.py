@@ -19,10 +19,14 @@ def PlotOptionValue(all_N, values, black_scholes_value, option_type):
     
     plt.plot(all_N, values, 'b', label = "European Call Option")
     plt.plot(all_N, np.ones(len(all_N))*black_scholes_value, 'black', label = "Analytical Black Scholes Solution")
-    plt.legend()
+    plt.legend(fontsize=14)
     plt.grid("both")
-    plt.ylabel("Option Value at t=0")
-    plt.xlabel("N")
+    plt.ylabel("Option Value at t=0", fontsize=16)
+    plt.xlabel("N", fontsize=16)
+    plt.yscale('log')
+    plt.xscale('log')
+    plt.xticks(fontsize=16)
+    plt.yticks(fontsize=16)
     plt.tight_layout()
     plt.savefig(f'./{option_type}/option_value_{low_N}N_to_{high_N}N.pdf', format="pdf")
     plt.show()
@@ -37,8 +41,12 @@ def PlotAbsoluteDifference(all_N, values, black_scholes_value, option_type):
     absolute_difference = np.abs(values-black_scholes_value)
     plt.plot(all_N, absolute_difference, color='b')
     plt.grid("both")
-    plt.ylabel("Absolute Difference")
-    plt.xlabel("N")
+    plt.ylabel("Absolute Difference", fontsize=16)
+    plt.xlabel("N", fontsize=16)
+    plt.yscale('log')
+    plt.xscale('log')
+    plt.xticks(fontsize=16)
+    plt.yticks(fontsize=16)
     plt.tight_layout()
     plt.savefig(f'./{option_type}/absolute_difference_{low_N}N_to_{high_N}N.pdf', format="pdf")
     plt.show()
@@ -54,17 +62,27 @@ PlotOptionValue(all_N, values,black_scholes_value, "call")
 PlotAbsoluteDifference(all_N, values, black_scholes_value, "call")
 
 # Create graphs of certain ranges
-start = 10
+start = 0
 stop = 100 
 PlotOptionValue(all_N[start:stop], values[start:stop], black_scholes_value, "call")
 PlotAbsoluteDifference(all_N[start:stop], values[start:stop], black_scholes_value, "call")
 
-start = 100
+start = 0
 stop = 1000
 PlotOptionValue(all_N[start:stop], values[start:stop], black_scholes_value, "call")
 PlotAbsoluteDifference(all_N[start:stop], values[start:stop], black_scholes_value, "call")
 
-start = 900
+start = 99
 stop = 1000
+PlotOptionValue(all_N[start:stop], values[start:stop], black_scholes_value, "call")
+PlotAbsoluteDifference(all_N[start:stop], values[start:stop], black_scholes_value, "call")
+
+start = 99
+stop = 10000
+PlotOptionValue(all_N[start:stop], values[start:stop], black_scholes_value, "call")
+PlotAbsoluteDifference(all_N[start:stop], values[start:stop], black_scholes_value, "call")
+
+start = 999
+stop = 10000
 PlotOptionValue(all_N[start:stop], values[start:stop], black_scholes_value, "call")
 PlotAbsoluteDifference(all_N[start:stop], values[start:stop], black_scholes_value, "call")

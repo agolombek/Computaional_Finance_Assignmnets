@@ -103,7 +103,7 @@ def convergence_analysis(N_low, N_high, S, T, K, r, sigma, option_type):
     
 
 # N_low = 1
-# N_high = 1000
+# N_high = 10000
 
 # # Call Option
 # all_N, values = convergence_analysis(N_low, N_high, S, T, K, r, sigma, "call")
@@ -119,6 +119,8 @@ def convergence_analysis(N_low, N_high, S, T, K, r, sigma, option_type):
 # df = pd.DataFrame(dictionary)
 # df.to_csv("./American_Option_Results/ame_put_varying_N.csv", index=False)
 
+# print("Completed American Convergence Analysis")
+
 ########################### Studying Volatility ##############################
 
 S = 100
@@ -127,7 +129,7 @@ N = 50
 K = 99
 r = 0.06
 
-volatilities = np.linspace(0.01, 10, 1000)
+volatilities = np.linspace(0.01, 6, 1000)
 ame_call = []
 ame_put = []
 eur_call = []
@@ -152,10 +154,27 @@ plt.plot(volatilities, ame_call, color='red', label='American Call Option')
 plt.plot(volatilities, eur_call, color='b', label='European Call Option', linestyle='dashed')
 plt.plot(volatilities, ame_put, color='orange', label='American Put Option')
 plt.plot(volatilities, eur_put, color='green', label='European Put Option', linestyle='dashed')
-plt.xlabel(r"$\sigma$")
-plt.ylabel('Option Value at t= 0')
-plt.legend()
+plt.xlabel(r"$\sigma$", fontsize=16)
+plt.ylabel('Option Value at t= 0', fontsize=16)
+plt.legend(fontsize=14)
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
 plt.grid()
 plt.tight_layout()
 plt.savefig('./American_Option_Results/option_value_varying_sigma.pdf', format="pdf")
-plt.show()    
+plt.show()
+
+call_diff = np.absolute(np.array(ame_call) - np.array(eur_call))
+put_diff = np.absolute(np.array(ame_put) - np.array(eur_put))
+
+plt.plot(volatilities, call_diff, color='red', label=r'$\mid V_{C}^{Eur}-V_{C}^{Ame}\mid$')
+plt.plot(volatilities, put_diff, color='orange', label=r'$\mid V_{P}^{Eur}-V_{P}^{Ame}\mid$')
+plt.xlabel(r"$\sigma$", fontsize=16)
+plt.ylabel('Absolute Difference', fontsize=16)
+plt.legend(fontsize=14)
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
+plt.grid()
+plt.tight_layout()
+plt.savefig('./American_Option_Results/option_value_varying_sigma_diff.pdf', format="pdf")
+plt.show()

@@ -39,10 +39,10 @@ def BlackScholesHedge(S_array, K, r, T, t_array, sigma):
     
     return N_d1
     
-sigma = 0.2
+sigma = 0.0
 S0 = 100
 T = 1
-N = 50
+N = 1000
 K = 99
 r = 0.06
 

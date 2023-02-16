@@ -153,7 +153,7 @@ def convergence_analysis(N_low, N_high, S, T, K, r, sigma, option_type):
     
 
 # N_low = 1
-# N_high = 1000
+# N_high = 10000
 
 # # Call Option
 # all_N, values = convergence_analysis(N_low, N_high, S, T, K, r, sigma, "call")
@@ -168,6 +168,8 @@ def convergence_analysis(N_low, N_high, S, T, K, r, sigma, option_type):
 # dictionary = {"N values": all_N, "Option Valuation": values}
 # df = pd.DataFrame(dictionary)
 # df.to_csv("./European_Option_Results/eur_put_varying_N.csv", index=False)
+
+# print("Completed European Convergence Analysis")
 
 
 ######################### Hedge Parameter Analysis ############################
@@ -216,13 +218,57 @@ for sigma in volatilities:
 
 plt.plot(volatilities, BT_hedge, color='b', label='Binomial Tree')
 plt.plot(volatilities, BS_hedge, color='black', label='Black Scholes', linestyle='dashed')
-plt.xlabel(r"$\sigma$")
-plt.ylabel(r'$\Delta_{0}$')
-plt.legend()
+plt.xlabel(r"$\sigma$", fontsize=16)
+plt.ylabel(r'$\Delta_{0}$', fontsize=16)
+plt.legend(fontsize=14)
 plt.grid()
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
 plt.tight_layout()
 plt.savefig('./European_Option_Results/call_option_hedge_varying_sigma.pdf', format="pdf")
-plt.show()    
+plt.show()
+
+
+abs_diff = np.absolute(np.array(BT_hedge)-np.array(BS_hedge))
+
+plt.plot(volatilities, abs_diff, color='b')
+plt.xlabel(r"$\sigma$", fontsize=16)
+plt.ylabel('Absolute Difference', fontsize=16)
+plt.grid()
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
+plt.tight_layout()
+plt.savefig('./European_Option_Results/call_option_hedge_varying_sigma_diff.pdf', format="pdf")
+plt.show()  
+
+# create zoomed plots
+start = 0
+stop = 90
+
+plt.plot(volatilities[start:stop], BT_hedge[start:stop], color='b', label='Binomial Tree')
+plt.plot(volatilities[start:stop], BS_hedge[start:stop], color='black', label='Black Scholes', linestyle='dashed')
+plt.xlabel(r"$\sigma$", fontsize=16)
+plt.ylabel(r'$\Delta_{0}$', fontsize=16)
+plt.legend(fontsize=14)
+plt.grid()
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
+plt.tight_layout()
+plt.savefig('./European_Option_Results/call_option_hedge_varying_sigma_zoom.pdf', format="pdf")
+plt.show()
+
+
+abs_diff = np.absolute(np.array(BT_hedge)-np.array(BS_hedge))
+
+plt.plot(volatilities[start:stop], abs_diff[start:stop], color='b')
+plt.xlabel(r"$\sigma$", fontsize=16)
+plt.ylabel('Absolute Difference', fontsize=16)
+plt.grid()
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
+plt.tight_layout()
+plt.savefig('./European_Option_Results/call_option_hedge_varying_sigma_diff_zoom.pdf', format="pdf")
+plt.show()  
     
 
 
