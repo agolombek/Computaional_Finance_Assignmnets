@@ -107,7 +107,7 @@ seed = 0
 iterations = 100
 sigmas = [0.01, 0.1, 0.2, 0.3, 0.4]
 
-rebalances = np.logspace(1, 4, 150)
+rebalances = np.logspace(1, 3, 100)
 start = time()
 colors = ['red', 'orange', 'black', 'cornflowerblue','green']
 col_idx = 0
@@ -131,7 +131,7 @@ for sigma in sigmas:
     profit_std = np.array(profit_std)
     
     sigma_diff = round(true_sigma - sigma, 2)
-    plot_label = r'$\sigma_{true} - \sigma = $' + f'{sigma_diff}'
+    plot_label = r'$\Delta \sigma =$' + f'{sigma_diff}'
     plt.plot(rebalances, profit_means, color=colors[col_idx], label=plot_label)
     plt.fill_between(rebalances, profit_means + profit_std, profit_means - profit_std, color=colors[col_idx], alpha = 0.5) 
     
@@ -145,7 +145,7 @@ plt.xscale('log')
 plt.xticks(fontsize=12)
 plt.yticks(fontsize=12)
 plt.tight_layout()
-plt.savefig('hedging_simulation_plot_4.pdf', format="pdf")
+plt.savefig('hedging_simulation_plot_trial_1.pdf', format="pdf")
 plt.show()
 
 end = time()
