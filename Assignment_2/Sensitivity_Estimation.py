@@ -47,9 +47,11 @@ r = 0.06
 n_sim = 10**5
 
 # Percentage by which S0 will be bumped
-bumps = np.linspace(0.0000001, 0.1, 1000)
+bumps = np.linspace(0.0000001, 0.3, 1000)
 
 BS_delta = BlackScholesPutHedge(S0, K, r, T, sigma)*np.ones(len(bumps))
+
+#################### Bump and Revalue - Using Same Seed #######################
 
 seed = 0
 np.random.seed(seed)
@@ -57,23 +59,27 @@ Z  = np.random.normal(size=n_sim)
 base_value, std = monte_carlo_european_put(S0, r, T, K, sigma, n_sim, Z)
 
 FDM_delta = np.zeros(len(bumps))
+CDM_delta = np.zeros(len(bumps))
 
 i = 0
 for h in bumps:
     
-    seed += 1
-    # seed = 0
-    S = S0 + S0*h
-    # np.random.seed(seed)
-    # Z  = np.random.normal(size=n_sim)
-    bumped_value, std = monte_carlo_european_put(S, r, T, K, sigma, n_sim, Z)
+    S_f = S0 + S0*h
+    S_b = S0 - S0*h
+
+    bumped_value, std = monte_carlo_european_put(S_f, r, T, K, sigma, n_sim, Z)
+    backward_bump_value, std = monte_carlo_european_put(S_b, r, T, K, sigma, n_sim, Z)
     
-    delta = (bumped_value-base_value)/(h*S0)
-    FDM_delta[i] = delta
+    delta_f = (bumped_value-base_value)/(h*S0)
+    FDM_delta[i] = delta_f
+    
+    delta_c = (bumped_value-backward_bump_value)/(2*h*S0)
+    CDM_delta[i] = delta_c
     i+=1
 
 plt.plot(bumps*100, BS_delta, color='black', label='Analytical', linestyle='dashed')
-plt.plot(bumps*100, FDM_delta, color='C0', label='Finite Difference')
+plt.plot(bumps*100, FDM_delta, color='C0', label='Forward Difference')
+plt.plot(bumps*100, CDM_delta, color='green', label='Central Difference')
 plt.xlabel('h [%]',fontsize=12)
 plt.ylabel(r'$\Delta_{0}$',fontsize=12)
 plt.legend()
@@ -82,5 +88,49 @@ plt.xscale('log')
 # plt.yticks(fontsize=12)
 plt.grid()
 plt.tight_layout()
-# plt.savefig('european_put_option_varying_nsim.pdf', format="pdf")
+# plt.savefig('european_put_option_delta_same_seed.pdf', format="pdf")
+plt.show()
+
+################# Bump and Revalue - Using Different Seed #####################
+
+seed = 0
+np.random.seed(seed)
+Z  = np.random.normal(size=n_sim)
+base_value, std = monte_carlo_european_put(S0, r, T, K, sigma, n_sim, Z)
+
+FDM_delta = np.zeros(len(bumps))
+CDM_delta = np.zeros(len(bumps))
+
+i = 0
+for h in bumps:
+    
+    seed += 1
+    np.random.seed(seed)
+    Z  = np.random.normal(size=n_sim)
+    
+    S_f = S0 + S0*h
+    S_b = S0 - S0*h
+    
+    bumped_value, std = monte_carlo_european_put(S_f, r, T, K, sigma, n_sim, Z)
+    backward_bump_value, std = monte_carlo_european_put(S_b, r, T, K, sigma, n_sim, Z)
+    
+    delta_f = (bumped_value-base_value)/(h*S0)
+    FDM_delta[i] = delta_f
+    
+    delta_c = (bumped_value-backward_bump_value)/(2*h*S0)
+    CDM_delta[i] = delta_c
+    i+=1
+
+plt.plot(bumps*100, BS_delta, color='black', label='Analytical', linestyle='dashed')
+plt.plot(bumps*100, FDM_delta, color='C0', label='Forward Difference')
+plt.plot(bumps*100, CDM_delta, color='green', label='Central Difference')
+plt.xlabel('h [%]',fontsize=12)
+plt.ylabel(r'$\Delta_{0}$',fontsize=12)
+plt.legend()
+plt.xscale('log')
+# plt.xticks(fontsize=12)
+# plt.yticks(fontsize=12)
+plt.grid()
+plt.tight_layout()
+# plt.savefig('european_put_option_delta_different_seed.pdf', format="pdf")
 plt.show()
