@@ -62,11 +62,11 @@ i = 0
 for h in bumps:
     
     seed += 1
-    seed = 0
-    S0 = S0 + S0*h
+    # seed = 0
+    S = S0 + S0*h
     np.random.seed(seed)
     Z  = np.random.normal(size=n_sim)
-    bumped_value, std = monte_carlo_european_put(S0, r, T, K, sigma, n_sim, Z)
+    bumped_value, std = monte_carlo_european_put(S, r, T, K, sigma, n_sim, Z)
     
     delta = (bumped_value-base_value)/(h*S0)
     FDM_delta[i] = delta
