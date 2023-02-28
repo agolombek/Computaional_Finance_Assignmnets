@@ -47,7 +47,7 @@ r = 0.06
 n_sim = 10**5
 
 # Percentage by which S0 will be bumped
-bumps = np.linspace(0.01, 0.2, 50)
+bumps = np.linspace(0.0000001, 0.1, 1000)
 
 BS_delta = BlackScholesPutHedge(S0, K, r, T, sigma)*np.ones(len(bumps))
 
@@ -64,19 +64,20 @@ for h in bumps:
     seed += 1
     # seed = 0
     S = S0 + S0*h
-    np.random.seed(seed)
-    Z  = np.random.normal(size=n_sim)
+    # np.random.seed(seed)
+    # Z  = np.random.normal(size=n_sim)
     bumped_value, std = monte_carlo_european_put(S, r, T, K, sigma, n_sim, Z)
     
     delta = (bumped_value-base_value)/(h*S0)
     FDM_delta[i] = delta
     i+=1
 
-plt.plot(bumps, BS_delta, color='black', label='Analytical', linestyle='dashed')
-plt.plot(bumps, FDM_delta, color='C0', label='Finite Difference')
+plt.plot(bumps*100, BS_delta, color='black', label='Analytical', linestyle='dashed')
+plt.plot(bumps*100, FDM_delta, color='C0', label='Finite Difference')
 plt.xlabel('h [%]',fontsize=12)
 plt.ylabel(r'$\Delta_{0}$',fontsize=12)
 plt.legend()
+plt.xscale('log')
 # plt.xticks(fontsize=12)
 # plt.yticks(fontsize=12)
 plt.grid()
