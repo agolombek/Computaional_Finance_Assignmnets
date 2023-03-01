@@ -30,7 +30,7 @@ def DigitalMonteCarlo(S0, r, T, K, sigma, n_sim, Z):
     avg_val = np.mean(option_value)
     std_val = np.std(option_value)
     
-    return avg_val, std_val
+    return avg_val, std_val, np.mean(maturity_price)
 
 
 sigma = 0.2
@@ -40,12 +40,14 @@ K = 99
 r = 0.06
 n_sim = 10**5
 
+#################### Bump and Revalue - Using Same Seed #######################
+
 bumps = np.linspace(0.0000001, 0.3, 1000)
 
 seed = 0
 np.random.seed(seed)
 Z  = np.random.normal(size=n_sim)
-base_value, std = DigitalMonteCarlo(S0, r, T, K, sigma, n_sim, Z)
+base_value, std, avg_ST = DigitalMonteCarlo(S0, r, T, K, sigma, n_sim, Z)
 
 FDM_delta = np.zeros(len(bumps))
 CDM_delta = np.zeros(len(bumps))
@@ -56,8 +58,8 @@ for h in bumps:
     S_f = S0 + S0*h
     S_b = S0 - S0*h
 
-    bumped_value, std = DigitalMonteCarlo(S_f, r, T, K, sigma, n_sim, Z)
-    backward_bump_value, std = DigitalMonteCarlo(S_b, r, T, K, sigma, n_sim, Z)
+    bumped_value, std, avg_ST = DigitalMonteCarlo(S_f, r, T, K, sigma, n_sim, Z)
+    backward_bump_value, std, avg_ST = DigitalMonteCarlo(S_b, r, T, K, sigma, n_sim, Z)
     
     delta_f = (bumped_value-base_value)/(h*S0)
     FDM_delta[i] = delta_f
@@ -78,3 +80,8 @@ plt.grid()
 plt.tight_layout()
 # plt.savefig('digital_option_delta.pdf', format="pdf")
 plt.show()
+
+####################### PathwiseDerivative Estimate ###########################
+
+avg_val, std_val, avg_ST = DigitalMonteCarlo(S0, r, T, K, sigma, n_sim, Z)
+print(np.exp(-r*T)*avg_val*avg_ST/S0)

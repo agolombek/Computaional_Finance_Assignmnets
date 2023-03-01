@@ -69,8 +69,7 @@ for n_sim in num_sims:
     avg_val, std_val = monte_carlo_european_put(S0, r, T, K, sigma, n_sim, Z)
     
     mean[i] = avg_val
-    # std[i] = std_val
-    std[i] = std_val/np.sqrt(n_sim)
+    std[i] = 1.96*std_val/np.sqrt(n_sim)
     i += 1
     
     seed += 1
@@ -118,8 +117,7 @@ for sigma in volatilities:
     
     BlackScholes[i] = analytical
     MonteCarlo_mean[i] = avg_val
-    MonteCarlo_std[i] = std_val
-    # MonteCarlo_std[i] = std_val/np.sqrt(n_sim)
+    MonteCarlo_std[i] = 1.96*std_val/np.sqrt(n_sim)
     i += 1
     
     seed += 1
@@ -166,8 +164,7 @@ for K in strikes:
     
     BlackScholes[i] = analytical
     MonteCarlo_mean[i] = avg_val
-    MonteCarlo_std[i] = std_val
-    # MonteCarlo_std[i] = std_val/np.sqrt(n_sim)
+    MonteCarlo_std[i] = 1.96*std_val/np.sqrt(n_sim)
     i += 1
     
     seed += 1
