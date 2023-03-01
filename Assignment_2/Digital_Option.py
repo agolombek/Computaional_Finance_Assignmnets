@@ -107,7 +107,8 @@ def DigitalPathiwseDelta(S0, r, T, K, sigma, n_sim, Z, a):
     """
     ST = S0*np.exp(T*(r-0.5*np.square(sigma)) + sigma*Z*np.sqrt(T))
 
-    e_term = np.exp(a*(ST-K))
+    e_term = np.exp(-a*(ST-K))
+
     dVdST = (a*e_term)/np.square(e_term+1)
     
     deltas = dVdST*np.exp(-r*T)*ST/S0
@@ -116,7 +117,7 @@ def DigitalPathiwseDelta(S0, r, T, K, sigma, n_sim, Z, a):
     
     return avg_val, std_val
 
-smoothing_values = np.linspace(0.1, 4.9, 100)
+smoothing_values = np.linspace(0.1, 10, 100)
 analytical = AnalyticalDigitalDelta(S0, K, r, T, sigma)*np.ones(len(smoothing_values))
 
 Pathwise_Delta = np.zeros(len(smoothing_values))
