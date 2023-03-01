@@ -33,6 +33,17 @@ def DigitalMonteCarlo(S0, r, T, K, sigma, n_sim, Z):
     return avg_val, std_val, np.mean(maturity_price)
 
 
+def AnalyticalDigitalDelta(S, K, r, T, vol):
+    """
+    https://quant.stackexchange.com/questions/23267/delta-of-binary-option
+    """
+    d1 = (np.log(S/K) + (r+0.5*vol**2)*T)/(vol*np.sqrt(T))
+    d2 = d1 - vol*np.sqrt(T)
+    N_d2 = norm.pdf(d2)
+    
+    delta_0 = np.exp(-r*T)*N_d2/(S*sigma*np.sqrt(T))
+    return delta_0
+
 sigma = 0.2
 S0 = 100
 T = 1
@@ -40,9 +51,13 @@ K = 99
 r = 0.06
 n_sim = 10**5
 
+
 #################### Bump and Revalue - Using Same Seed #######################
 
-bumps = np.linspace(0.0000001, 0.3, 1000)
+bumps = np.linspace(0.0000001, 0.5, 1000)
+
+analytical = AnalyticalDigitalDelta(S0, K, r, T, sigma)*np.ones(len(bumps))
+print(analytical[0])
 
 seed = 0
 np.random.seed(seed)
@@ -68,6 +83,7 @@ for h in bumps:
     CDM_delta[i] = delta_c
     i+=1
 
+plt.plot(bumps*100, analytical, color='black', label='Analytical', linestyle='dashed')
 plt.plot(bumps*100, FDM_delta, color='C0', label='Forward Difference')
 plt.plot(bumps*100, CDM_delta, color='green', label='Central Difference')
 plt.xlabel('h [%]',fontsize=12)
@@ -83,5 +99,42 @@ plt.show()
 
 ####################### PathwiseDerivative Estimate ###########################
 
-avg_val, std_val, avg_ST = DigitalMonteCarlo(S0, r, T, K, sigma, n_sim, Z)
-print(np.exp(-r*T)*avg_val*avg_ST/S0)
+@njit
+def DigitalPathiwseDelta(S0, r, T, K, sigma, n_sim, Z, a):
+    """
+    Using Monte Carlo Approach to find the delta hedge parameter of a
+    digital option.
+    """
+    ST = S0*np.exp(T*(r-0.5*np.square(sigma)) + sigma*Z*np.sqrt(T))
+
+    e_term = np.exp(a*(ST-K))
+    dVdST = (a*e_term)/np.square(e_term+1)
+    
+    deltas = dVdST*np.exp(-r*T)*ST/S0
+    avg_val = np.mean(deltas)
+    std_val = np.std(deltas)
+    
+    return avg_val, std_val
+
+smoothing_values = np.linspace(0.1, 4.9, 100)
+analytical = AnalyticalDigitalDelta(S0, K, r, T, sigma)*np.ones(len(smoothing_values))
+
+Pathwise_Delta = np.zeros(len(smoothing_values))
+
+i = 0
+ 
+for a in smoothing_values:
+    Pathwise_Delta[i] = DigitalPathiwseDelta(S0, r, T, K, sigma, n_sim, Z, a)[0]
+    i+=1
+
+plt.plot(smoothing_values, analytical, color='black', label='Analytical', linestyle='dashed')
+plt.plot(smoothing_values, Pathwise_Delta, color='red', label='Pathwise Method')
+plt.xlabel('a',fontsize=12)
+plt.ylabel(r'$\Delta_{0}$',fontsize=12)
+plt.legend()
+# plt.xticks(fontsize=12)
+# plt.yticks(fontsize=12)
+plt.grid()
+plt.tight_layout()
+# plt.savefig('digital_option_delta.pdf', format="pdf")
+plt.show()

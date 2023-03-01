@@ -48,6 +48,7 @@ n_sim = 10**5
 
 # Percentage by which S0 will be bumped
 bumps = np.linspace(0.0000001, 0.3, 1000)
+# bumps = np.linspace(0.001, 0.3, 1000)
 
 BS_delta = BlackScholesPutHedge(S0, K, r, T, sigma)*np.ones(len(bumps))
 
