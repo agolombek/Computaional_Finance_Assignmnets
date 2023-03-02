@@ -106,7 +106,7 @@ def DigitalPathiwseDelta(S0, r, T, K, sigma, n_sim, Z, a):
     digital option.
     """
     ST = S0*np.exp(T*(r-0.5*np.square(sigma)) + sigma*Z*np.sqrt(T))
-
+    
     e_term = np.exp(-a*(ST-K))
 
     dVdST = (a*e_term)/np.square(e_term+1)
@@ -121,15 +121,20 @@ smoothing_values = np.linspace(0.1, 10, 100)
 analytical = AnalyticalDigitalDelta(S0, K, r, T, sigma)*np.ones(len(smoothing_values))
 
 Pathwise_Delta = np.zeros(len(smoothing_values))
+std = np.zeros(len(smoothing_values))
 
 i = 0
  
 for a in smoothing_values:
-    Pathwise_Delta[i] = DigitalPathiwseDelta(S0, r, T, K, sigma, n_sim, Z, a)[0]
-    i+=1
+    delta, std_val = DigitalPathiwseDelta(S0, r, T, K, sigma, n_sim, Z, a)
+    Pathwise_Delta[i] = delta
+    std[i] = 1.96*std_val/np.sqrt(n_sim)
+    i += 1
+
 
 plt.plot(smoothing_values, analytical, color='black', label='Analytical', linestyle='dashed')
 plt.plot(smoothing_values, Pathwise_Delta, color='red', label='Pathwise Method')
+plt.fill_between(smoothing_values, Pathwise_Delta + std, Pathwise_Delta - std, color='C0', alpha = 0.5) 
 plt.xlabel('a',fontsize=12)
 plt.ylabel(r'$\Delta_{0}$',fontsize=12)
 plt.legend()
