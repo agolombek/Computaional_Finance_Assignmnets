@@ -134,7 +134,7 @@ for a in smoothing_values:
 
 plt.plot(smoothing_values, analytical, color='black', label='Analytical', linestyle='dashed')
 plt.plot(smoothing_values, Pathwise_Delta, color='red', label='Pathwise Method')
-plt.fill_between(smoothing_values, Pathwise_Delta + std, Pathwise_Delta - std, color='C0', alpha = 0.5) 
+plt.fill_between(smoothing_values, Pathwise_Delta + std, Pathwise_Delta - std, color='red', alpha = 0.5) 
 plt.xlabel('a',fontsize=12)
 plt.ylabel(r'$\Delta_{0}$',fontsize=12)
 plt.legend()
@@ -163,11 +163,16 @@ def DigitalLikelihoodDelta(S0, r, T, K, sigma, Z):
     
     return avg_val, std_val
     
-likelihood = DigitalLikelihoodDelta(S0, r, T, K, sigma, Z)[0]*np.ones(len(smoothing_values))
+likelihood, std = DigitalLikelihoodDelta(S0, r, T, K, sigma, Z)
+
+likelihood = likelihood*np.ones(len(smoothing_values))
+std = 1.96*std*np.ones(len(smoothing_values))/np.sqrt(n_sim)
 
 plt.plot(smoothing_values, analytical, color='black', label='Analytical', linestyle='dashed')
 plt.plot(smoothing_values, Pathwise_Delta, color='red', label='Pathwise Method')
 plt.plot(smoothing_values, likelihood, color='blue', label='Likelihood ratio')
+plt.fill_between(smoothing_values, likelihood + std, likelihood - std, color='blue', alpha = 0.5) 
+
 plt.xlabel('a',fontsize=12)
 plt.ylabel(r'$\Delta_{0}$',fontsize=12)
 plt.legend()
