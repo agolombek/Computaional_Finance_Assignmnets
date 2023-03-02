@@ -144,3 +144,36 @@ plt.grid()
 plt.tight_layout()
 # plt.savefig('digital_option_delta.pdf', format="pdf")
 plt.show()
+
+####################### LikelihoodRatioDerivative Estimate ###########################
+
+@njit
+def DigitalLikelihoodDelta(S0, r, T, K, sigma, Z):
+    """
+    Using Monte Carlo Approach to find the delta hedge parameter of a
+    digital option - Likelihood ratio.
+    """
+    ST = S0*np.exp(T*(r-0.5*np.square(sigma)) + sigma*Z*np.sqrt(T))
+
+    payoff = ST > K
+    
+    deltas = np.exp(-r * T) * payoff * Z / (S0 * sigma * np.sqrt(T))
+    avg_val = np.mean(deltas)
+    std_val = np.std(deltas)
+    
+    return avg_val, std_val
+    
+likelihood = DigitalLikelihoodDelta(S0, r, T, K, sigma, Z)[0]*np.ones(len(smoothing_values))
+
+plt.plot(smoothing_values, analytical, color='black', label='Analytical', linestyle='dashed')
+plt.plot(smoothing_values, Pathwise_Delta, color='red', label='Pathwise Method')
+plt.plot(smoothing_values, likelihood, color='blue', label='Likelihood ratio')
+plt.xlabel('a',fontsize=12)
+plt.ylabel(r'$\Delta_{0}$',fontsize=12)
+plt.legend()
+# plt.xticks(fontsize=12)
+# plt.yticks(fontsize=12)
+plt.grid()
+plt.tight_layout()
+# plt.savefig('digital_option_delta.pdf', format="pdf")
+plt.show()
