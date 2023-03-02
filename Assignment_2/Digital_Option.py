@@ -66,14 +66,15 @@ base_value, std, avg_ST = DigitalMonteCarlo(S0, r, T, K, sigma, n_sim, Z)
 FDM_delta = np.zeros(len(bumps))
 CDM_delta = np.zeros(len(bumps))
 
+
 i = 0
 for h in bumps:
     
     S_f = S0 + S0*h
     S_b = S0 - S0*h
 
-    bumped_value, std, avg_ST = DigitalMonteCarlo(S_f, r, T, K, sigma, n_sim, Z)
-    backward_bump_value, std, avg_ST = DigitalMonteCarlo(S_b, r, T, K, sigma, n_sim, Z)
+    bumped_value, std_forward, avg_ST = DigitalMonteCarlo(S_f, r, T, K, sigma, n_sim, Z)
+    backward_bump_value, std_back, avg_ST = DigitalMonteCarlo(S_b, r, T, K, sigma, n_sim, Z)
     
     delta_f = (bumped_value-base_value)/(h*S0)
     FDM_delta[i] = delta_f
@@ -144,7 +145,6 @@ def DigitalPathiwseDeltaCDF(S0, r, T, K, sigma, n_sim, Z, b):
     
     deltas = dVdST*np.exp(-r*T)*ST/S0
     avg_val = np.mean(deltas)
-    print(avg_val)
     std_val = np.std(deltas)
     
     return avg_val, std_val
@@ -161,11 +161,6 @@ for b in smoothing_values_cdf:
     Pathwise_cdf_Delta[i] = delta
     pathwise_cdf_std[i] = 1.96*std_val/np.sqrt(n_sim)
     i += 1
-
-plt.plot(smoothing_values_cdf, analytical, color='black', label='Analytical', linestyle='dashed')
-plt.plot(smoothing_values_cdf, Pathwise_cdf_Delta, color='green', label='Pathwise Method')
-plt.fill_between(smoothing_values_cdf, Pathwise_cdf_Delta + pathwise_cdf_std, Pathwise_cdf_Delta - pathwise_cdf_std, color='green', alpha = 0.2) 
-plt.show()
 
 ####################### LikelihoodRatioDerivative Estimate ###########################
 
@@ -190,20 +185,26 @@ likelihood, std = DigitalLikelihoodDelta(S0, r, T, K, sigma, Z)
 likelihood = likelihood*np.ones(len(smoothing_values_sigmoid))
 std = 1.96*std*np.ones(len(smoothing_values_sigmoid))/np.sqrt(n_sim)
 
-plt.plot(smoothing_values_sigmoid, analytical, color='black', label='Analytical', linestyle='dashed')
+################################ Plot ########################################
 
-plt.plot(smoothing_values_sigmoid, Pathwise_sigmoid_Delta, color='red', label='Pathwise Method')
-plt.fill_between(smoothing_values_sigmoid, Pathwise_sigmoid_Delta + pathwise_sigmoid_std, Pathwise_sigmoid_Delta - pathwise_sigmoid_std, color='red', alpha = 0.2) 
+fig, ax1 = plt.subplots()
+ax1.plot(smoothing_values_sigmoid, analytical, color='black', label='Analytical', linestyle='dashed')
 
-plt.plot(smoothing_values_sigmoid, likelihood, color='blue', label='Likelihood ratio')
-plt.fill_between(smoothing_values_sigmoid, likelihood + std, likelihood - std, color='blue', alpha = 0.2) 
+ax1.plot(smoothing_values_sigmoid, Pathwise_sigmoid_Delta, color='red', label='Pathwise Method Sigmoid')
+ax1.fill_between(smoothing_values_sigmoid, Pathwise_sigmoid_Delta + pathwise_sigmoid_std, Pathwise_sigmoid_Delta - pathwise_sigmoid_std, color='red', alpha = 0.2)
 
-plt.xlabel('a',fontsize=12)
-plt.ylabel(r'$\Delta_{0}$',fontsize=12)
-plt.legend()
-# plt.xticks(fontsize=12)
-# plt.yticks(fontsize=12)
-plt.grid()
-plt.tight_layout()
-# plt.savefig('digital_option_delta.pdf', format="pdf")
+ax1.plot(smoothing_values_sigmoid, likelihood, color='blue', label='Likelihood ratio')
+ax1.fill_between(smoothing_values_sigmoid, likelihood + std, likelihood - std, color='blue', alpha = 0.2)
+
+ax2 = ax1.twiny()
+ax2.plot(smoothing_values_cdf, Pathwise_cdf_Delta, color='green', label='Pathwise Method Normal CDF')
+ax2.fill_between(smoothing_values_cdf, Pathwise_cdf_Delta + pathwise_cdf_std, Pathwise_cdf_Delta - pathwise_cdf_std, color='green', alpha = 0.2)
+
+ax1.set_xlabel('a')
+ax1.set_ylabel(r'$\Delta_{0}$')
+
+ax2.set_xlabel(r'$\sigma_{s}$')
+ax2.grid(which='major', axis='both')
+fig.tight_layout()
+fig.legend(loc='upper right', bbox_to_anchor=(1.1, 0.87))
 plt.show()
