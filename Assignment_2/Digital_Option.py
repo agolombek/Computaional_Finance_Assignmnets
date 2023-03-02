@@ -57,7 +57,6 @@ n_sim = 10**5
 bumps = np.linspace(0.0000001, 0.5, 1000)
 
 analytical = AnalyticalDigitalDelta(S0, K, r, T, sigma)*np.ones(len(bumps))
-print(analytical[0])
 
 seed = 0
 np.random.seed(seed)
@@ -100,10 +99,10 @@ plt.show()
 ####################### PathwiseDerivative Estimate ###########################
 
 @njit
-def DigitalPathiwseDelta(S0, r, T, K, sigma, n_sim, Z, a):
+def DigitalPathiwseDeltaSigmoid(S0, r, T, K, sigma, n_sim, Z, a):
     """
     Using Monte Carlo Approach to find the delta hedge parameter of a
-    digital option.
+    digital option using a sigmoid as a smoothing function.
     """
     ST = S0*np.exp(T*(r-0.5*np.square(sigma)) + sigma*Z*np.sqrt(T))
     
@@ -117,32 +116,55 @@ def DigitalPathiwseDelta(S0, r, T, K, sigma, n_sim, Z, a):
     
     return avg_val, std_val
 
-smoothing_values = np.linspace(0.1, 10, 100)
-analytical = AnalyticalDigitalDelta(S0, K, r, T, sigma)*np.ones(len(smoothing_values))
+smoothing_values_sigmoid = np.linspace(0.1, 10, 100)
+analytical = AnalyticalDigitalDelta(S0, K, r, T, sigma)*np.ones(len(smoothing_values_sigmoid))
 
-Pathwise_Delta = np.zeros(len(smoothing_values))
-std = np.zeros(len(smoothing_values))
+Pathwise_sigmoid_Delta = np.zeros(len(smoothing_values_sigmoid))
+pathwise_sigmoid_std = np.zeros(len(smoothing_values_sigmoid))
 
 i = 0
  
-for a in smoothing_values:
-    delta, std_val = DigitalPathiwseDelta(S0, r, T, K, sigma, n_sim, Z, a)
-    Pathwise_Delta[i] = delta
-    std[i] = 1.96*std_val/np.sqrt(n_sim)
+for a in smoothing_values_sigmoid:
+    delta, std_val = DigitalPathiwseDeltaSigmoid(S0, r, T, K, sigma, n_sim, Z, a)
+    Pathwise_sigmoid_Delta[i] = delta
+    pathwise_sigmoid_std[i] = 1.96*std_val/np.sqrt(n_sim)
     i += 1
 
 
-plt.plot(smoothing_values, analytical, color='black', label='Analytical', linestyle='dashed')
-plt.plot(smoothing_values, Pathwise_Delta, color='red', label='Pathwise Method')
-plt.fill_between(smoothing_values, Pathwise_Delta + std, Pathwise_Delta - std, color='red', alpha = 0.5) 
-plt.xlabel('a',fontsize=12)
-plt.ylabel(r'$\Delta_{0}$',fontsize=12)
-plt.legend()
-# plt.xticks(fontsize=12)
-# plt.yticks(fontsize=12)
-plt.grid()
-plt.tight_layout()
-# plt.savefig('digital_option_delta.pdf', format="pdf")
+# @njit
+def DigitalPathiwseDeltaCDF(S0, r, T, K, sigma, n_sim, Z, b):
+    """
+    Using Monte Carlo Approach to find the delta hedge parameter of a
+    digital option using the cumulitive density dunction of a normal 
+    distribution as a smoothing function.
+    """
+    ST = S0*np.exp(T*(r-0.5*np.square(sigma)) + sigma*Z*np.sqrt(T))
+
+    dVdST = norm.pdf(ST, loc=K, scale=b)
+    
+    deltas = dVdST*np.exp(-r*T)*ST/S0
+    avg_val = np.mean(deltas)
+    print(avg_val)
+    std_val = np.std(deltas)
+    
+    return avg_val, std_val
+
+smoothing_values_cdf = np.linspace(0.01, 2, 100)
+
+Pathwise_cdf_Delta = np.zeros(len(smoothing_values_cdf))
+pathwise_cdf_std = np.zeros(len(smoothing_values_cdf))
+
+i = 0
+ 
+for b in smoothing_values_cdf:
+    delta, std_val = DigitalPathiwseDeltaCDF(S0, r, T, K, sigma, n_sim, Z, b)
+    Pathwise_cdf_Delta[i] = delta
+    pathwise_cdf_std[i] = 1.96*std_val/np.sqrt(n_sim)
+    i += 1
+
+plt.plot(smoothing_values_cdf, analytical, color='black', label='Analytical', linestyle='dashed')
+plt.plot(smoothing_values_cdf, Pathwise_cdf_Delta, color='green', label='Pathwise Method')
+plt.fill_between(smoothing_values_cdf, Pathwise_cdf_Delta + pathwise_cdf_std, Pathwise_cdf_Delta - pathwise_cdf_std, color='green', alpha = 0.2) 
 plt.show()
 
 ####################### LikelihoodRatioDerivative Estimate ###########################
@@ -165,13 +187,16 @@ def DigitalLikelihoodDelta(S0, r, T, K, sigma, Z):
     
 likelihood, std = DigitalLikelihoodDelta(S0, r, T, K, sigma, Z)
 
-likelihood = likelihood*np.ones(len(smoothing_values))
-std = 1.96*std*np.ones(len(smoothing_values))/np.sqrt(n_sim)
+likelihood = likelihood*np.ones(len(smoothing_values_sigmoid))
+std = 1.96*std*np.ones(len(smoothing_values_sigmoid))/np.sqrt(n_sim)
 
-plt.plot(smoothing_values, analytical, color='black', label='Analytical', linestyle='dashed')
-plt.plot(smoothing_values, Pathwise_Delta, color='red', label='Pathwise Method')
-plt.plot(smoothing_values, likelihood, color='blue', label='Likelihood ratio')
-plt.fill_between(smoothing_values, likelihood + std, likelihood - std, color='blue', alpha = 0.5) 
+plt.plot(smoothing_values_sigmoid, analytical, color='black', label='Analytical', linestyle='dashed')
+
+plt.plot(smoothing_values_sigmoid, Pathwise_sigmoid_Delta, color='red', label='Pathwise Method')
+plt.fill_between(smoothing_values_sigmoid, Pathwise_sigmoid_Delta + pathwise_sigmoid_std, Pathwise_sigmoid_Delta - pathwise_sigmoid_std, color='red', alpha = 0.2) 
+
+plt.plot(smoothing_values_sigmoid, likelihood, color='blue', label='Likelihood ratio')
+plt.fill_between(smoothing_values_sigmoid, likelihood + std, likelihood - std, color='blue', alpha = 0.2) 
 
 plt.xlabel('a',fontsize=12)
 plt.ylabel(r'$\Delta_{0}$',fontsize=12)
