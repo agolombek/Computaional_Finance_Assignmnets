@@ -107,8 +107,8 @@ def DigitalPathiwseDeltaSigmoid(S0, r, T, K, sigma, n_sim, Z, a):
     """
     ST = S0*np.exp(T*(r-0.5*np.square(sigma)) + sigma*Z*np.sqrt(T))
     
-    e_term = np.exp(-a*(ST-K))
-    dVdST = (a*e_term)/np.square(e_term+1)
+    x = ST - K 
+    dVdST = (a*np.exp(-a*x))/np.square(np.exp(-a*x)+1)
     
     deltas = dVdST*np.exp(-r*T)*ST/S0
     avg_val = np.mean(deltas)
@@ -141,7 +141,9 @@ def DigitalPathiwseDeltaCDF(S0, r, T, K, sigma, n_sim, Z, b):
     """
     ST = S0*np.exp(T*(r-0.5*np.square(sigma)) + sigma*Z*np.sqrt(T))
 
-    dVdST = norm.pdf(ST, loc=K, scale=b)
+    x = ST - K
+
+    dVdST = norm.pdf(x, loc=0, scale=b)
     
     deltas = dVdST*np.exp(-r*T)*ST/S0
     avg_val = np.mean(deltas)
