@@ -72,8 +72,8 @@ r = 0.06
 n_sim = 10**5
 
 # Percentage by which S0 will be bumped
-bumps = np.linspace(0.0000001, 0.3, 1000)
-bumps = np.linspace(0.001, 0.1, 1000)
+
+bumps = np.linspace(0.00001, 0.1, 1000)
 
 BS_delta = BlackScholesPutHedge(S0, K, r, T, sigma)*np.ones(len(bumps))
 
@@ -106,11 +106,11 @@ for h in bumps:
     
     delta_f = (bump_avg-base_avg)/(h*S0)
     FDM_delta[i] = delta_f
-    FDM_std[i] = STD_FDM(base_values, bumped_values, h, n_sim)
+    FDM_std[i] = STD_FDM(base_values, bumped_values, S0*h, n_sim)
     
     delta_c = (bump_avg-bk_bump_avg)/(2*h*S0)
     CDM_delta[i] = delta_c
-    CDM_std[i] = STD_CDM(bumped_values, backward_bump_values, h, n_sim)
+    CDM_std[i] = STD_CDM(bumped_values, backward_bump_values, S0*h, n_sim)
     
     i+=1
 
@@ -166,11 +166,11 @@ for h in bumps:
     
     delta_f = (bump_avg-base_avg)/(h*S0)
     FDM_delta[i] = delta_f
-    FDM_std[i] = STD_FDM(base_values, bumped_values, h, n_sim)
+    FDM_std[i] = STD_FDM(base_values, bumped_values, S0*h, n_sim)
     
     delta_c = (bump_avg-bk_bump_avg)/(2*h*S0)
     CDM_delta[i] = delta_c
-    CDM_std[i] = STD_CDM(bumped_values, backward_bump_values, h, n_sim)
+    CDM_std[i] = STD_CDM(bumped_values, backward_bump_values, S0*h, n_sim)
     
     i+=1
 
