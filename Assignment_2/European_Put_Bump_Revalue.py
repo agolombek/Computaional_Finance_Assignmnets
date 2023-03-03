@@ -38,12 +38,6 @@ def BlackScholesPutHedge(S, K, r, T, vol):
 
     return hedge
 
-def STD_FDM(std_1, std_2):
-    var_1 = np.square(std_1)
-    var_2 = np.square(std_2)
-    
-    
-
     
 sigma = 0.2
 S0 = 100
