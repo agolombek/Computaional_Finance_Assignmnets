@@ -30,7 +30,7 @@ def DigitalMonteCarlo(S0, r, T, K, sigma, n_sim, Z):
     avg_val = np.mean(option_value)
     std_val = np.std(option_value)
     
-    return avg_val, std_val, np.mean(maturity_price)
+    return avg_val, std_val
 
 
 def AnalyticalDigitalDelta(S, K, r, T, vol):
@@ -61,7 +61,7 @@ analytical = AnalyticalDigitalDelta(S0, K, r, T, sigma)*np.ones(len(bumps))
 seed = 0
 np.random.seed(seed)
 Z  = np.random.normal(size=n_sim)
-base_value, std, avg_ST = DigitalMonteCarlo(S0, r, T, K, sigma, n_sim, Z)
+base_value, std = DigitalMonteCarlo(S0, r, T, K, sigma, n_sim, Z)
 
 FDM_delta = np.zeros(len(bumps))
 CDM_delta = np.zeros(len(bumps))
@@ -73,8 +73,8 @@ for h in bumps:
     S_f = S0 + S0*h
     S_b = S0 - S0*h
 
-    bumped_value, std_forward, avg_ST = DigitalMonteCarlo(S_f, r, T, K, sigma, n_sim, Z)
-    backward_bump_value, std_back, avg_ST = DigitalMonteCarlo(S_b, r, T, K, sigma, n_sim, Z)
+    bumped_value, std_forward = DigitalMonteCarlo(S_f, r, T, K, sigma, n_sim, Z)
+    backward_bump_value, std_back = DigitalMonteCarlo(S_b, r, T, K, sigma, n_sim, Z)
     
     delta_f = (bumped_value-base_value)/(h*S0)
     FDM_delta[i] = delta_f
@@ -108,7 +108,6 @@ def DigitalPathiwseDeltaSigmoid(S0, r, T, K, sigma, n_sim, Z, a):
     ST = S0*np.exp(T*(r-0.5*np.square(sigma)) + sigma*Z*np.sqrt(T))
     
     e_term = np.exp(-a*(ST-K))
-
     dVdST = (a*e_term)/np.square(e_term+1)
     
     deltas = dVdST*np.exp(-r*T)*ST/S0
@@ -126,6 +125,7 @@ pathwise_sigmoid_std = np.zeros(len(smoothing_values_sigmoid))
 i = 0
  
 for a in smoothing_values_sigmoid:
+    
     delta, std_val = DigitalPathiwseDeltaSigmoid(S0, r, T, K, sigma, n_sim, Z, a)
     Pathwise_sigmoid_Delta[i] = delta
     pathwise_sigmoid_std[i] = 1.96*std_val/np.sqrt(n_sim)
@@ -149,7 +149,7 @@ def DigitalPathiwseDeltaCDF(S0, r, T, K, sigma, n_sim, Z, b):
     
     return avg_val, std_val
 
-smoothing_values_cdf = np.linspace(0.01, 2, 100)
+smoothing_values_cdf = np.linspace(0.01, 2, 10)
 
 Pathwise_cdf_Delta = np.zeros(len(smoothing_values_cdf))
 pathwise_cdf_std = np.zeros(len(smoothing_values_cdf))
@@ -207,4 +207,5 @@ ax2.set_xlabel(r'$\sigma_{s}$')
 ax2.grid(which='major', axis='both')
 fig.tight_layout()
 fig.legend(loc='upper right', bbox_to_anchor=(1.1, 0.87))
+fig.savefig('DigitalOption_delta.pdf', format='pdf', dpi=400)
 plt.show()

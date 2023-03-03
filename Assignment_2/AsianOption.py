@@ -12,23 +12,14 @@ import pandas as pd
 from scipy.stats import norm
 
 @njit
-def Black_Scholes_Euler(S0, r, N, T, sigma, seed, n_sim):
+def Black_Scholes(S0, r, N, T, sigma, seed, n_sim, Z_matrix):
     
-    np.random.seed(seed)
+    t_values = np.linspace(0, T, N)
+    S_matrix = np.zeros(shape=(n_sim, N))
     
-    dt = T/N
-    t_values = np.linspace(0, T, N+1)
-    
-    S = S0
-    S_matrix = np.zeros(n_sim, N+1)
-    S_matrix[:][0] = S
-    
-    for j in range(n_sim):
-        S = S0
-        for i in np.arange(1, N+1):
-            ds = r*S*dt + sigma*S*np.sqrt(dt)*np.random.normal()
-            S = S + ds
-            S_matrix[j][i] = S
+    for j in np.arange(n_sim):
+        Z = Z_matrix[j][:]
+        S_matrix[j][:] = S0*np.exp(t_values*(r-0.5*np.square(sigma)) + sigma*Z*np.sqrt(t_values))
         
     return S_matrix
 
@@ -48,7 +39,7 @@ def EvaluateAsianOption(S_matrix, N, r, T, n_sim):
     
     return values
 
-def AsianOptionValueAbalytical(S0, r, T, sigma, N):
+def AsianOptionValueAnalytical(S0, r, T, sigma, N):
     
     sigma_tilde =  sigma*np.sqrt((2*N+1)/(6*(N+1)))
     r_tilde = (r - 0.5*np.square(sigma) + np.square(sigma_tilde))/2
@@ -66,20 +57,27 @@ K = 99
 T = 1
 r = 0.06
 
-N = 10**6
+N = 10**3
 
-analytical = AsianOptionValueAbalytical(S0, r, T, sigma, N)
+analytical = AsianOptionValueAnalytical(S0, r, T, sigma, N)
 
 ########## Test convergence for different number of simulations ###############
 
-num_sims = np.logspace(1, 6, 10)
+num_sims = np.logspace(1, 4, 10)
 
 seed = 0
 for n_sim in num_sims:
+    
     n_sim = int(n_sim)
-    S_matrix = Black_Scholes_Euler(S0, r, N, T, sigma, seed, n_sim)
+    np.random.seed(seed)
+    
+    Z_matrix = np.random.normal(size=(n_sim, N))
+    
+    S_matrix = Black_Scholes(S0, r, N, T, sigma, seed, n_sim, Z_matrix)
+    
     values = EvaluateAsianOption(S_matrix, N, r, T, n_sim)
-    print(analytical, np.mean(values))
+    
+    print(analytical, np.mean(values), 1.96*np.std(values)/np.sqrt(n_sim))
     
     seed += 1
 
