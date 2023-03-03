@@ -132,7 +132,6 @@ for a in smoothing_values_sigmoid:
     i += 1
 
 
-# @njit
 def DigitalPathiwseDeltaCDF(S0, r, T, K, sigma, n_sim, Z, b):
     """
     Using Monte Carlo Approach to find the delta hedge parameter of a
