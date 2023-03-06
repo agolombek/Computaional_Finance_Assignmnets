@@ -45,8 +45,6 @@ def STD_FDM(set_1, set_2, bump, n_sim):
 
     cov = cov_matrix[0][1]
     
-    print(var_1, var_2, cov)
-    
     total_SE = np.sqrt((var_1 + var_2 - 2*cov)/np.square(bump))
     
     return total_SE
@@ -119,10 +117,10 @@ for h in bumps:
 plt.plot(bumps*100, BS_delta, color='black', label='Analytical', linestyle='dashed')
 
 plt.plot(bumps*100, FDM_delta, color='C0', label='Forward Difference')
-plt.fill_between(bumps*100, FDM_delta + FDM_std, FDM_delta - FDM_std, color='C0', alpha = 0.5)
+# plt.fill_between(bumps*100, FDM_delta + FDM_std, FDM_delta - FDM_std, color='C0', alpha = 0.5)
 
 plt.plot(bumps*100, CDM_delta, color='green', label='Central Difference')
-plt.fill_between(bumps*100, CDM_delta + CDM_std, CDM_delta - CDM_std, color='green', alpha = 0.5)
+# plt.fill_between(bumps*100, CDM_delta + CDM_std, CDM_delta - CDM_std, color='green', alpha = 0.5)
 
 plt.xlabel('h [%]',fontsize=12)
 plt.ylabel(r'$\Delta_{0}$',fontsize=12)
@@ -135,62 +133,84 @@ plt.tight_layout()
 # plt.savefig('european_put_option_delta_same_seed.pdf', format="pdf")
 plt.show()
 
+plt.plot(bumps*100, FDM_std, color='C0', label='Forward Difference')
+plt.plot(bumps*100, CDM_std, color='green', label='Central Difference')
+plt.xlabel('h [%]',fontsize=12)
+plt.ylabel('Standrad Error',fontsize=12)
+plt.legend()
+plt.grid()
+plt.tight_layout()
+plt.show()
+
+
+
 ################# Bump and Revalue - Using Different Seed #####################
 
-# seed = 0
-# np.random.seed(seed)
-# Z  = np.random.normal(size=n_sim)
-# base_values = monte_carlo_european_put(S0, r, T, K, sigma, n_sim, Z)
-# base_avg = np.mean(base_values)
+seed = 0
+np.random.seed(seed)
+Z  = np.random.normal(size=n_sim)
+base_values = monte_carlo_european_put(S0, r, T, K, sigma, n_sim, Z)
+base_avg = np.mean(base_values)
 
-# FDM_delta = np.zeros(len(bumps))
-# FDM_std = np.zeros(len(bumps))
+FDM_delta = np.zeros(len(bumps))
+FDM_std = np.zeros(len(bumps))
 
-# CDM_delta = np.zeros(len(bumps))
-# CDM_std = np.zeros(len(bumps))
+CDM_delta = np.zeros(len(bumps))
+CDM_std = np.zeros(len(bumps))
 
-# i = 0
-# for h in bumps:
+i = 0
+for h in bumps:
     
-#     seed += 1
-#     np.random.seed(seed)
-#     Z  = np.random.normal(size=n_sim)
+    seed += 1
+    np.random.seed(seed)
+    Z  = np.random.normal(size=n_sim)
     
-#     S_f = S0 + S0*h
-#     S_b = S0 - S0*h
+    S_f = S0 + S0*h
+    S_b = S0 - S0*h
 
-#     bumped_values = monte_carlo_european_put(S_f, r, T, K, sigma, n_sim, Z)
-#     bump_avg = np.mean(bumped_values)
+    bumped_values = monte_carlo_european_put(S_f, r, T, K, sigma, n_sim, Z)
+    bump_avg = np.mean(bumped_values)
     
-#     backward_bump_values= monte_carlo_european_put(S_b, r, T, K, sigma, n_sim, Z)
-#     bk_bump_avg = np.mean(backward_bump_values)
+    backward_bump_values= monte_carlo_european_put(S_b, r, T, K, sigma, n_sim, Z)
+    bk_bump_avg = np.mean(backward_bump_values)
     
     
-#     delta_f = (bump_avg-base_avg)/(h*S0)
-#     FDM_delta[i] = delta_f
-#     FDM_std[i] = STD_FDM(base_values, bumped_values, S0*h, n_sim)
+    delta_f = (bump_avg-base_avg)/(h*S0)
+    FDM_delta[i] = delta_f
+    FDM_std[i] = STD_FDM(base_values, bumped_values, S0*h, n_sim)
     
-#     delta_c = (bump_avg-bk_bump_avg)/(2*h*S0)
-#     CDM_delta[i] = delta_c
-#     CDM_std[i] = STD_CDM(bumped_values, backward_bump_values, S0*h, n_sim)
+    delta_c = (bump_avg-bk_bump_avg)/(2*h*S0)
+    CDM_delta[i] = delta_c
+    CDM_std[i] = STD_CDM(bumped_values, backward_bump_values, S0*h, n_sim)
     
-#     i+=1
+    i+=1
 
-# plt.plot(bumps*100, BS_delta, color='black', label='Analytical', linestyle='dashed')
+plt.plot(bumps*100, BS_delta, color='black', label='Analytical', linestyle='dashed')
 
-# plt.plot(bumps*100, FDM_delta, color='C0', label='Forward Difference')
+plt.plot(bumps*100, FDM_delta, color='C0', label='Forward Difference')
 # plt.fill_between(bumps*100, FDM_delta + FDM_std, FDM_delta - FDM_std, color='C0', alpha = 0.5)
 
-# plt.plot(bumps*100, CDM_delta, color='green', label='Central Difference')
+plt.plot(bumps*100, CDM_delta, color='green', label='Central Difference')
 # plt.fill_between(bumps*100, CDM_delta + CDM_std, CDM_delta - CDM_std, color='green', alpha = 0.5)
 
-# plt.xlabel('h [%]',fontsize=12)
-# plt.ylabel(r'$\Delta_{0}$',fontsize=12)
-# plt.legend()
-# plt.xscale('log')
-# # plt.xticks(fontsize=12)
-# # plt.yticks(fontsize=12)
-# plt.grid()
-# plt.tight_layout()
-# # plt.savefig('european_put_option_delta_same_seed.pdf', format="pdf")
-# plt.show()
+plt.xlabel('h [%]',fontsize=12)
+plt.ylabel(r'$\Delta_{0}$',fontsize=12)
+plt.legend()
+plt.xscale('log')
+# plt.xticks(fontsize=12)
+# plt.yticks(fontsize=12)
+plt.grid()
+plt.tight_layout()
+# plt.savefig('european_put_option_delta_same_seed.pdf', format="pdf")
+plt.show()
+
+# plt.plot(bumps*100, FDM_std, color='C0', label='Forward Difference')
+plt.plot(bumps*100, CDM_std, color='green', label='Central Difference')
+plt.xlabel('h [%]',fontsize=12)
+plt.ylabel('Standrad Error',fontsize=12)
+plt.legend()
+plt.grid()
+plt.yscale('log')
+plt.xscale('log')
+plt.tight_layout()
+plt.show()
