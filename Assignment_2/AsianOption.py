@@ -17,9 +17,15 @@ def Black_Scholes(S0, r, N, T, sigma, seed, n_sim, Z_matrix):
     t_values = np.linspace(0, T, N)
     S_matrix = np.zeros(shape=(n_sim, N))
     
+    dt = T/N
+    
     for j in np.arange(n_sim):
-        Z = Z_matrix[j][:]
-        S_matrix[j][:] = S0*np.exp(t_values*(r-0.5*np.square(sigma)) + sigma*Z*np.sqrt(t_values))
+        S = S0
+        S_matrix[j][0] = S
+        for i in np.arange(1, N):
+            Z = Z_matrix[j][i]
+            S =  S*np.exp(dt*(r-0.5*np.square(sigma)) + sigma*Z*np.sqrt(dt))
+            S_matrix[j][i] = S
         
     return S_matrix
 
@@ -57,15 +63,20 @@ K = 99
 T = 1
 r = 0.06
 
-N = 10**3
+N = 10**4
 
 analytical = AsianOptionValueAnalytical(S0, r, T, sigma, N)
 
 ########## Test convergence for different number of simulations ###############
 
-num_sims = np.logspace(1, 4, 10)
+num_sims = np.logspace(1, 4, 50)
+
+mean = np.zeros(len(num_sims))
+SE =  np.zeros(len(num_sims))
 
 seed = 0
+i = 0
+
 for n_sim in num_sims:
     
     n_sim = int(n_sim)
@@ -77,22 +88,26 @@ for n_sim in num_sims:
     
     values = EvaluateAsianOption(S_matrix, N, r, T, n_sim)
     
+    mean[i] = np.mean(values)
+    SE[i] = np.std(values)/np.sqrt(n_sim)
+    
     print(analytical, np.mean(values), 1.96*np.std(values)/np.sqrt(n_sim))
     
     seed += 1
+    i += 1
 
-# plt.plot(num_sims, analytical*np.ones(len(num_sims)), color='black', label='Analytical', linestyle='dashed')
-# plt.plot(num_sims, mean, color='C0', label='Monte Carlo')
-# plt.fill_between(num_sims, mean + std, mean - std, color='C0', alpha = 0.5) 
-# plt.xlabel('Number of Simulations',fontsize=12)
-# plt.ylabel(r'$V_{0}$',fontsize=12)
-# plt.xscale('log')
-# plt.legend()
-# # plt.xticks(fontsize=12)
-# # plt.yticks(fontsize=12)
-# plt.grid()
-# plt.tight_layout()
-# # plt.savefig('asian_call_option_varying_nsim.pdf', format="pdf")
-# plt.show()
+plt.plot(num_sims, analytical*np.ones(len(num_sims)), color='black', label='Analytical', linestyle='dashed')
+plt.plot(num_sims, mean, color='C0', label='Monte Carlo')
+plt.fill_between(num_sims, mean + SE, mean - SE, color='C0', alpha = 0.5) 
+plt.xlabel('Number of Simulations',fontsize=12)
+plt.ylabel(r'$V_{0}$',fontsize=12)
+plt.xscale('log')
+plt.legend()
+# plt.xticks(fontsize=12)
+# plt.yticks(fontsize=12)
+plt.grid()
+plt.tight_layout()
+# plt.savefig('asian_call_option_varying_nsim.pdf', format="pdf")
+plt.show()
 
 # Test convergence using different values for time steps
