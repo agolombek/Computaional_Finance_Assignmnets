@@ -69,7 +69,7 @@ for n_sim in num_sims:
     avg_val, std_val = monte_carlo_european_put(S0, r, T, K, sigma, n_sim, Z)
     
     mean[i] = avg_val
-    std[i] = 1.96*std_val/np.sqrt(n_sim)
+    std[i] = std_val/np.sqrt(n_sim)
     i += 1
     
     seed += 1
@@ -77,17 +77,29 @@ for n_sim in num_sims:
 plt.plot(num_sims, analytical*np.ones(len(num_sims)), color='black', label='Analytical', linestyle='dashed')
 plt.plot(num_sims, mean, color='C0', label='Monte Carlo')
 plt.fill_between(num_sims, mean + std, mean - std, color='C0', alpha = 0.5) 
-plt.xlabel('Number of Simulations',fontsize=12)
-plt.ylabel(r'$V_{0}$',fontsize=12)
+plt.xlabel('Number of Simulations',fontsize=16)
+plt.ylabel(r'$V_{0}$',fontsize=16)
 plt.xscale('log')
-plt.legend()
-# plt.xticks(fontsize=12)
-# plt.yticks(fontsize=12)
+plt.legend(fontsize=14)
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
 plt.grid()
 plt.tight_layout()
-# plt.savefig('european_put_option_varying_nsim.pdf', format="pdf")
+plt.savefig('european_put_option_varying_nsim.pdf', format="pdf")
 plt.show()
 
+
+plt.plot(num_sims, std, color='C0', label='Monte Carlo')
+plt.xlabel('Number of Simulations',fontsize=16)
+plt.ylabel('Standard Error',fontsize=16)
+plt.xscale('log')
+plt.yscale('log')
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
+plt.grid()
+plt.tight_layout()
+plt.savefig('european_put_option_varying_nsim_SE.pdf', format="pdf")
+plt.show()
 
 ########################### Varying Volatility ################################
 
@@ -97,7 +109,7 @@ K = 99
 r = 0.06
 n_sim = 10**5
 
-volatilities = np.linspace(0.01, 6, 100)
+volatilities = np.linspace(0.01, 1, 100)
 
 BlackScholes = np.zeros(len(volatilities))
 MonteCarlo_mean = np.zeros(len(volatilities))
@@ -117,22 +129,33 @@ for sigma in volatilities:
     
     BlackScholes[i] = analytical
     MonteCarlo_mean[i] = avg_val
-    MonteCarlo_std[i] = 1.96*std_val/np.sqrt(n_sim)
+    MonteCarlo_std[i] = std_val/np.sqrt(n_sim)
     i += 1
     
     seed += 1
 
 plt.plot(volatilities, BlackScholes, color='black', label='Analytical', linestyle='dashed')
 plt.plot(volatilities, MonteCarlo_mean, color='C0', label='Monte Carlo')
-plt.fill_between(volatilities, MonteCarlo_mean + MonteCarlo_std, MonteCarlo_mean - MonteCarlo_std, color='C0', alpha = 0.5) 
-plt.xlabel(r'$\sigma$',fontsize=12)
-plt.ylabel(r'$V_{0}$',fontsize=12)
-plt.legend()
-# plt.xticks(fontsize=12)
-# plt.yticks(fontsize=12)
+# plt.fill_between(volatilities, MonteCarlo_mean + MonteCarlo_std, MonteCarlo_mean - MonteCarlo_std, color='C0', alpha = 0.5) 
+plt.xlabel(r'$\sigma$',fontsize=16)
+plt.ylabel(r'$V_{0}$',fontsize=16)
+plt.legend(fontsize=14)
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
 plt.grid()
 plt.tight_layout()
-# plt.savefig('european_put_option_varying_sigma.pdf', format="pdf")
+plt.savefig('european_put_option_varying_sigma.pdf', format="pdf")
+plt.show()
+
+plt.plot(volatilities, MonteCarlo_std, color='C0', label='Monte Carlo')
+plt.xlabel(r'$\sigma$',fontsize=16)
+plt.ylabel('Standard Error',fontsize=16)
+# plt.yscale('log')
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
+plt.grid()
+plt.tight_layout()
+plt.savefig('european_put_option_varying_sigma_SE.pdf', format="pdf")
 plt.show()
 
 
@@ -144,7 +167,7 @@ T = 1
 r = 0.06
 n_sim = 10**5
 
-strikes = np.linspace(0, 200, 100)
+strikes = np.linspace(1, 200, 100)
 
 BlackScholes = np.zeros(len(volatilities))
 MonteCarlo_mean = np.zeros(len(volatilities))
@@ -164,20 +187,31 @@ for K in strikes:
     
     BlackScholes[i] = analytical
     MonteCarlo_mean[i] = avg_val
-    MonteCarlo_std[i] = 1.96*std_val/np.sqrt(n_sim)
+    MonteCarlo_std[i] = std_val/np.sqrt(n_sim)
     i += 1
     
     seed += 1
 
 plt.plot(strikes, BlackScholes, color='black', label='Analytical', linestyle='dashed')
 plt.plot(strikes, MonteCarlo_mean, color='C0', label='Monte Carlo')
-plt.fill_between(strikes, MonteCarlo_mean + MonteCarlo_std, MonteCarlo_mean - MonteCarlo_std, color='C0', alpha = 0.5) 
-plt.xlabel(r'$K$',fontsize=12)
-plt.ylabel(r'$V_{0}$',fontsize=12)
-plt.legend()
-# plt.xticks(fontsize=12)
-# plt.yticks(fontsize=12)
+# plt.fill_between(strikes, MonteCarlo_mean + MonteCarlo_std, MonteCarlo_mean - MonteCarlo_std, color='C0', alpha = 0.5) 
+plt.xlabel(r'$K$',fontsize=16)
+plt.ylabel(r'$V_{0}$',fontsize=16)
+plt.legend(fontsize=14)
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
 plt.grid()
 plt.tight_layout()
-# plt.savefig('european_put_option_varying_K.pdf', format="pdf")
+plt.savefig('european_put_option_varying_K.pdf', format="pdf")
+plt.show()
+
+plt.plot(strikes, MonteCarlo_std, color='C0', label='Monte Carlo')
+plt.xlabel(r'$K$',fontsize=16)
+plt.ylabel('Standard Error',fontsize=16)
+# plt.yscale('log')
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
+plt.grid()
+plt.tight_layout()
+plt.savefig('european_put_option_varying_K_SE.pdf', format="pdf")
 plt.show()

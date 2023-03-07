@@ -116,7 +116,8 @@ def DigitalPathiwseDeltaSigmoid(S0, r, T, K, sigma, n_sim, Z, a):
     
     return avg_val, std_val
 
-smoothing_values_sigmoid = np.linspace(0.1, 10, 100)
+smoothing_values_sigmoid = np.logspace(-1, 1, 1000)
+
 analytical = AnalyticalDigitalDelta(S0, K, r, T, sigma)*np.ones(len(smoothing_values_sigmoid))
 
 Pathwise_sigmoid_Delta = np.zeros(len(smoothing_values_sigmoid))
@@ -128,8 +129,9 @@ for a in smoothing_values_sigmoid:
     
     delta, std_val = DigitalPathiwseDeltaSigmoid(S0, r, T, K, sigma, n_sim, Z, a)
     Pathwise_sigmoid_Delta[i] = delta
-    pathwise_sigmoid_std[i] = 1.96*std_val/np.sqrt(n_sim)
+    pathwise_sigmoid_std[i] = std_val/np.sqrt(n_sim)
     i += 1
+    
 
 
 def DigitalPathiwseDeltaCDF(S0, r, T, K, sigma, n_sim, Z, b):
@@ -150,7 +152,7 @@ def DigitalPathiwseDeltaCDF(S0, r, T, K, sigma, n_sim, Z, b):
     
     return avg_val, std_val
 
-smoothing_values_cdf = np.linspace(0.01, 10, 100)
+smoothing_values_cdf = np.logspace(-2, 1, 1000)
 
 Pathwise_cdf_Delta = np.zeros(len(smoothing_values_cdf))
 pathwise_cdf_std = np.zeros(len(smoothing_values_cdf))
@@ -160,8 +162,10 @@ i = 0
 for b in smoothing_values_cdf:
     delta, std_val = DigitalPathiwseDeltaCDF(S0, r, T, K, sigma, n_sim, Z, b)
     Pathwise_cdf_Delta[i] = delta
-    pathwise_cdf_std[i] = 1.96*std_val/np.sqrt(n_sim)
+    pathwise_cdf_std[i] = std_val/np.sqrt(n_sim)
     i += 1
+
+
 
 ####################### LikelihoodRatioDerivative Estimate ###########################
 
@@ -184,29 +188,40 @@ def DigitalLikelihoodDelta(S0, r, T, K, sigma, Z):
 likelihood, std = DigitalLikelihoodDelta(S0, r, T, K, sigma, Z)
 
 likelihood = likelihood*np.ones(len(smoothing_values_sigmoid))
-std = 1.96*std*np.ones(len(smoothing_values_sigmoid))/np.sqrt(n_sim)
+std = std*np.ones(len(smoothing_values_sigmoid))/np.sqrt(n_sim)
 
 ################################ Plot ########################################
 
-fig, ax1 = plt.subplots()
-ax1.plot(smoothing_values_sigmoid, analytical, color='black', label='Analytical', linestyle='dashed')
-
-ax1.plot(smoothing_values_sigmoid, Pathwise_sigmoid_Delta, color='red', label='Pathwise Method Sigmoid')
-ax1.fill_between(smoothing_values_sigmoid, Pathwise_sigmoid_Delta + pathwise_sigmoid_std, Pathwise_sigmoid_Delta - pathwise_sigmoid_std, color='red', alpha = 0.2)
-
-ax1.plot(smoothing_values_sigmoid, likelihood, color='blue', label='Likelihood ratio')
-ax1.fill_between(smoothing_values_sigmoid, likelihood + std, likelihood - std, color='blue', alpha = 0.2)
-
-ax2 = ax1.twiny()
-ax2.plot(smoothing_values_cdf, Pathwise_cdf_Delta, color='green', label='Pathwise Method Normal CDF')
-ax2.fill_between(smoothing_values_cdf, Pathwise_cdf_Delta + pathwise_cdf_std, Pathwise_cdf_Delta - pathwise_cdf_std, color='green', alpha = 0.2)
-
-ax1.set_xlabel('a')
-ax1.set_ylabel(r'$\Delta_{0}$')
-
-ax2.set_xlabel(r'$\sigma_{s}$')
-ax2.grid(which='major', axis='both')
-fig.tight_layout()
-fig.legend(loc='upper right', bbox_to_anchor=(1.1, 0.87))
-fig.savefig('DigitalOption_delta.pdf', format='pdf', dpi=400)
+plt.plot(smoothing_values_sigmoid, analytical, color='black', label='Analytical', linestyle='dashed')
+plt.plot(smoothing_values_sigmoid, likelihood, color='blue', label='Likelihood ratio')
+plt.fill_between(smoothing_values_sigmoid, likelihood + std, likelihood - std, color='blue', alpha = 0.2)
+plt.plot(smoothing_values_sigmoid, Pathwise_sigmoid_Delta, color='red', label='Pathwise Method Sigmoid')
+plt.fill_between(smoothing_values_sigmoid, Pathwise_sigmoid_Delta + pathwise_sigmoid_std, Pathwise_sigmoid_Delta - pathwise_sigmoid_std, color='red', alpha = 0.2)
+plt.xscale('log')
+plt.xlabel(r'$a$',fontsize=16)
+plt.ylabel(r'$\Delta_0$',fontsize=16)
+plt.legend(fontsize=14, loc = 'lower right')
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
+plt.tight_layout()
+plt.grid()
+# plt.savefig('digital_option_delta_sigmoid.pdf', format="pdf")
 plt.show()
+
+plt.plot(smoothing_values_cdf, analytical, color='black', label='Analytical', linestyle='dashed')
+plt.plot(smoothing_values_cdf, likelihood, color='blue', label='Likelihood ratio')
+plt.fill_between(smoothing_values_cdf, likelihood + std, likelihood - std, color='blue', alpha = 0.2)
+plt.plot(smoothing_values_cdf, Pathwise_cdf_Delta, color='green', label='Pathwise Method Normal CDF')
+plt.fill_between(smoothing_values_cdf, Pathwise_cdf_Delta + pathwise_cdf_std, Pathwise_cdf_Delta - pathwise_cdf_std, color='green', alpha = 0.2)
+plt.xscale('log')
+plt.gca().invert_xaxis()
+plt.xlabel(r'$\sigma_s$',fontsize=16)
+plt.ylabel(r'$\Delta_0$',fontsize=16)
+plt.legend(fontsize=14, loc = 'lower right')
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
+plt.tight_layout()
+plt.grid()
+# plt.savefig('digital_option_delta_cdf.pdf', format="pdf")
+plt.show()
+
