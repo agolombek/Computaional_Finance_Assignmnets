@@ -80,7 +80,7 @@ n_sim = 10**5
 
 #################### Bump and Revalue - Using Same Seed #######################
 
-bumps = np.linspace(0.0000001, 0.5, 1000)
+bumps = np.linspace(0.0001, 0.5, 1000)
 
 analytical = AnalyticalDigitalDelta(S0, K, r, T, sigma)*np.ones(len(bumps))
 
@@ -281,3 +281,29 @@ plt.grid()
 # plt.savefig('digital_option_delta_cdf.pdf', format="pdf")
 plt.show()
 
+plt.plot(smoothing_values_sigmoid, std, color='blue', label='Likelihood ratio')
+plt.plot(smoothing_values_sigmoid, pathwise_sigmoid_std, color='red', label='Pathwise Method Sigmoid')
+plt.xscale('log')
+plt.xlabel(r'$a$',fontsize=16)
+plt.ylabel('Standard Error',fontsize=16)
+plt.legend(fontsize=14, loc = 'lower right')
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
+plt.tight_layout()
+plt.grid()
+# plt.savefig('digital_option_delta_sigmoid_SE.pdf', format="pdf")
+plt.show()
+
+plt.plot(smoothing_values_sigmoid, std, color='blue', label='Likelihood ratio')
+plt.plot(smoothing_values_sigmoid, pathwise_cdf_std, color='green', label='Pathwise Method Normal CDF')
+plt.xscale('log')
+plt.gca().invert_xaxis()
+plt.xlabel(r'$\sigma_s$',fontsize=16)
+plt.ylabel('Standard Error',fontsize=16)
+plt.legend(fontsize=14, loc = 'lower right')
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
+plt.tight_layout()
+plt.grid()
+# plt.savefig('digital_option_delta_cdf_SE.pdf', format="pdf")
+plt.show()
