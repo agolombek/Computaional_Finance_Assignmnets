@@ -91,8 +91,6 @@ for n_sim in num_sims:
     mean[i] = np.mean(values)
     SE[i] = np.std(values)/np.sqrt(n_sim)
     
-    print(analytical, np.mean(values), 1.96*np.std(values)/np.sqrt(n_sim))
-    
     seed += 1
     i += 1
 

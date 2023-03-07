@@ -45,7 +45,7 @@ def STD_FDM(set_1, set_2, bump, n_sim):
 
     cov = cov_matrix[0][1]
     
-    total_SE = np.sqrt((var_1 + var_2 - 2*cov)/np.square(bump))
+    total_SE = np.sqrt((var_1 + var_2 + 2*cov)/np.square(bump))/np.sqrt(n_sim)
     
     return total_SE
 
@@ -59,7 +59,7 @@ def STD_CDM(set_1, set_2, bump, n_sim):
     
     cov = cov_matrix[0][1]
     
-    total_SE = np.sqrt((var_1 + var_2 - 2*cov)/np.square(2*bump))
+    total_SE = np.sqrt((var_1 + var_2 + 2*cov)/np.square(2*bump))/np.sqrt(n_sim)
     
     return total_SE
 
@@ -130,7 +130,7 @@ plt.xticks(fontsize=16)
 plt.yticks(fontsize=16)
 plt.grid()
 plt.tight_layout()
-# plt.savefig('european_put_option_delta_same_seed.pdf', format="pdf")
+plt.savefig('european_put_option_delta_same_seed.pdf', format="pdf")
 plt.show()
 
 plt.plot(bumps*100, FDM_std, color='C0', label='Forward Difference')
@@ -139,10 +139,12 @@ plt.xlabel('h [%]',fontsize=16)
 plt.ylabel('Standrad Error',fontsize=16)
 plt.legend(fontsize=14)
 plt.grid()
+plt.xscale('log')
+plt.yscale('log')
 plt.xticks(fontsize=16)
 plt.yticks(fontsize=16)
 plt.tight_layout()
-# plt.savefig('european_put_option_SE_same_seed.pdf', format="pdf")
+plt.savefig('european_put_option_SE_same_seed.pdf', format="pdf")
 plt.show()
 
 
@@ -204,7 +206,7 @@ plt.xticks(fontsize=16)
 plt.yticks(fontsize=16)
 plt.grid()
 plt.tight_layout()
-# plt.savefig('european_put_option_delta_diff_seed.pdf', format="pdf")
+plt.savefig('european_put_option_delta_diff_seed.pdf', format="pdf")
 plt.show()
 
 plt.plot(bumps*100, FDM_std, color='C0', label='Forward Difference')
@@ -213,10 +215,12 @@ plt.xlabel('h [%]',fontsize=16)
 plt.ylabel('Standrad Error',fontsize=16)
 plt.legend(fontsize=14)
 plt.grid()
+plt.xscale('log')
+plt.yscale('log')
 plt.xticks(fontsize=16)
 plt.yticks(fontsize=16)
 plt.tight_layout()
-# plt.savefig('european_put_option_SE_diff_seed.pdf', format="pdf")
+plt.savefig('european_put_option_SE_diff_seed.pdf', format="pdf")
 plt.show()
 
 # Create zoomed picture
@@ -235,7 +239,7 @@ plt.xticks(fontsize=16)
 plt.yticks(fontsize=16)
 plt.grid()
 plt.tight_layout()
-# plt.savefig('european_put_option_delta_diff_seed_zoomFD.pdf', format="pdf")
+plt.savefig('european_put_option_delta_diff_seed_zoomFD.pdf', format="pdf")
 plt.show()
 
 plt.plot(bumps[start:stop]*100, FDM_std[start:stop], color='C0', label='Forward Difference')
@@ -244,8 +248,10 @@ plt.xlabel('h [%]',fontsize=16)
 plt.ylabel('Standrad Error',fontsize=16)
 plt.legend(fontsize=14)
 plt.grid()
+plt.xscale('log')
+plt.yscale('log')
 plt.xticks(fontsize=16)
 plt.yticks(fontsize=16)
 plt.tight_layout()
-# plt.savefig('european_put_option_SE_diff_seed_zoom_FD.pdf', format="pdf")
+plt.savefig('european_put_option_SE_diff_seed_zoom_FD.pdf', format="pdf")
 plt.show()

@@ -150,7 +150,7 @@ def DigitalPathiwseDeltaCDF(S0, r, T, K, sigma, n_sim, Z, b):
     
     return avg_val, std_val
 
-smoothing_values_cdf = np.linspace(0.01, 2, 10)
+smoothing_values_cdf = np.linspace(0.01, 10, 100)
 
 Pathwise_cdf_Delta = np.zeros(len(smoothing_values_cdf))
 pathwise_cdf_std = np.zeros(len(smoothing_values_cdf))
