@@ -117,10 +117,10 @@ for h in bumps:
 plt.plot(bumps*100, BS_delta, color='black', label='Analytical', linestyle='dashed')
 
 plt.plot(bumps*100, FDM_delta, color='C0', label='Forward Difference')
-# plt.fill_between(bumps*100, FDM_delta + FDM_std, FDM_delta - FDM_std, color='C0', alpha = 0.5)
+plt.fill_between(bumps*100, FDM_delta + FDM_std, FDM_delta - FDM_std, color='C0', alpha = 0.5)
 
 plt.plot(bumps*100, CDM_delta, color='green', label='Central Difference')
-# plt.fill_between(bumps*100, CDM_delta + CDM_std, CDM_delta - CDM_std, color='green', alpha = 0.5)
+plt.fill_between(bumps*100, CDM_delta + CDM_std, CDM_delta - CDM_std, color='green', alpha = 0.5)
 
 plt.xlabel('h [%]',fontsize=16)
 plt.ylabel(r'$\Delta_{0}$',fontsize=16)
@@ -130,7 +130,7 @@ plt.xticks(fontsize=16)
 plt.yticks(fontsize=16)
 plt.grid()
 plt.tight_layout()
-# plt.savefig('european_put_option_delta_same_seed.pdf', format="pdf")
+plt.savefig('european_put_option_delta_same_seed.pdf', format="pdf")
 plt.show()
 
 plt.plot(bumps*100, FDM_std, color='C0', label='Forward Difference')
@@ -140,11 +140,11 @@ plt.ylabel('Standrad Error',fontsize=16)
 plt.legend(fontsize=14)
 plt.grid()
 plt.xscale('log')
-# plt.yscale('log')
+plt.yscale('log')
 plt.xticks(fontsize=16)
 plt.yticks(fontsize=16)
 plt.tight_layout()
-# plt.savefig('european_put_option_SE_same_seed.pdf', format="pdf")
+plt.savefig('european_put_option_SE_same_seed.pdf', format="pdf")
 plt.show()
 
 
@@ -154,6 +154,7 @@ plt.show()
 seed = 0
 np.random.seed(seed)
 Z  = np.random.normal(size=n_sim)
+Z1 = np.random.normal(size=n_sim)
 base_values = monte_carlo_european_put(S0, r, T, K, sigma, n_sim, Z)
 base_avg = np.mean(base_values)
 
@@ -166,14 +167,11 @@ CDM_std = np.zeros(len(bumps))
 i = 0
 for h in bumps:
     
-    seed += 1
-    np.random.seed(seed)
-    Z  = np.random.normal(size=n_sim)
-    
+
     S_f = S0 + S0*h
     S_b = S0 - S0*h
 
-    bumped_values = monte_carlo_european_put(S_f, r, T, K, sigma, n_sim, Z)
+    bumped_values = monte_carlo_european_put(S_f, r, T, K, sigma, n_sim, Z1)
     bump_avg = np.mean(bumped_values)
     
     backward_bump_values= monte_carlo_european_put(S_b, r, T, K, sigma, n_sim, Z)
@@ -193,10 +191,10 @@ for h in bumps:
 plt.plot(bumps*100, BS_delta, color='black', label='Analytical', linestyle='dashed')
 
 plt.plot(bumps*100, FDM_delta, color='C0', label='Forward Difference')
-# plt.fill_between(bumps*100, FDM_delta + FDM_std, FDM_delta - FDM_std, color='C0', alpha = 0.5)
+plt.fill_between(bumps*100, FDM_delta + FDM_std, FDM_delta - FDM_std, color='C0', alpha = 0.5)
 
 plt.plot(bumps*100, CDM_delta, color='green', label='Central Difference')
-# plt.fill_between(bumps*100, CDM_delta + CDM_std, CDM_delta - CDM_std, color='green', alpha = 0.5)
+plt.fill_between(bumps*100, CDM_delta + CDM_std, CDM_delta - CDM_std, color='green', alpha = 0.5)
 
 plt.xlabel('h [%]',fontsize=16)
 plt.ylabel(r'$\Delta_{0}$',fontsize=16)
@@ -206,21 +204,7 @@ plt.xticks(fontsize=16)
 plt.yticks(fontsize=16)
 plt.grid()
 plt.tight_layout()
-# plt.savefig('european_put_option_delta_diff_seed.pdf', format="pdf")
-plt.show()
-
-plt.plot(bumps*100, FDM_std, color='C0', label='Forward Difference')
-plt.plot(bumps*100, CDM_std, color='green', label='Central Difference')
-plt.xlabel('h [%]',fontsize=16)
-plt.ylabel('Standrad Error',fontsize=16)
-plt.legend(fontsize=14)
-plt.grid()
-plt.xscale('log')
-# plt.yscale('log')
-plt.xticks(fontsize=16)
-plt.yticks(fontsize=16)
-plt.tight_layout()
-# plt.savefig('european_put_option_SE_diff_seed.pdf', format="pdf")
+plt.savefig('european_put_option_delta_diff_seed.pdf', format="pdf")
 plt.show()
 
 plt.plot(bumps*100, FDM_std, color='C0', label='Forward Difference')
@@ -234,38 +218,43 @@ plt.yscale('log')
 plt.xticks(fontsize=16)
 plt.yticks(fontsize=16)
 plt.tight_layout()
-# plt.savefig('european_put_option_SE_diff_seed.pdf', format="pdf")
+plt.savefig('european_put_option_SE_diff_seed.pdf', format="pdf")
 plt.show()
+
 
 # Create zoomed picture
 
 start = 100
 stop = len(bumps) - 1
 
-# plt.plot(bumps[start:stop]*100, BS_delta[start:stop], color='black', label='Analytical', linestyle='dashed')
-# plt.plot(bumps[start:stop]*100, FDM_delta[start:stop], color='C0', label='Forward Difference')
-# plt.plot(bumps[start:stop]*100, CDM_delta[start:stop], color='green', label='Central Difference')
-# plt.xlabel('h [%]',fontsize=16)
-# plt.ylabel(r'$\Delta_{0}$',fontsize=16)
-# plt.legend(fontsize=14)
-# plt.xscale('log')
-# plt.xticks(fontsize=16)
-# plt.yticks(fontsize=16)
-# plt.grid()
-# plt.tight_layout()
-# # plt.savefig('european_put_option_delta_diff_seed_zoomFD.pdf', format="pdf")
-# plt.show()
+plt.plot(bumps[start:stop]*100, BS_delta[start:stop], color='black', label='Analytical', linestyle='dashed')
+plt.plot(bumps[start:stop]*100, FDM_delta[start:stop], color='C0', label='Forward Difference')
+plt.fill_between(bumps[start:stop]*100, FDM_delta[start:stop] + FDM_std[start:stop], FDM_delta[start:stop] - FDM_std[start:stop], color='C0', alpha = 0.5)
 
-# plt.plot(bumps[start:stop]*100, FDM_std[start:stop], color='C0', label='Forward Difference')
-# plt.plot(bumps[start:stop]*100, CDM_std[start:stop], color='green', label='Central Difference')
-# plt.xlabel('h [%]',fontsize=16)
-# plt.ylabel('Standrad Error',fontsize=16)
-# plt.legend(fontsize=14)
-# plt.grid()
-# plt.xscale('log')
-# # plt.yscale('log')
-# plt.xticks(fontsize=16)
-# plt.yticks(fontsize=16)
-# plt.tight_layout()
-# # plt.savefig('european_put_option_SE_diff_seed_zoom_FD.pdf', format="pdf")
-# plt.show()
+plt.plot(bumps[start:stop]*100, CDM_delta[start:stop], color='green', label='Central Difference')
+plt.fill_between(bumps[start:stop]*100, CDM_delta[start:stop] + CDM_std[start:stop], CDM_delta[start:stop] - CDM_std[start:stop], color='green', alpha = 0.5)
+
+plt.xlabel('h [%]',fontsize=16)
+plt.ylabel(r'$\Delta_{0}$',fontsize=16)
+plt.legend(fontsize=14)
+plt.xscale('log')
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
+plt.grid()
+plt.tight_layout()
+plt.savefig('european_put_option_delta_diff_seed_zoomFD.pdf', format="pdf")
+plt.show()
+
+plt.plot(bumps[start:stop]*100, FDM_std[start:stop], color='C0', label='Forward Difference')
+plt.plot(bumps[start:stop]*100, CDM_std[start:stop], color='green', label='Central Difference')
+plt.xlabel('h [%]',fontsize=16)
+plt.ylabel('Standrad Error',fontsize=16)
+plt.legend(fontsize=14)
+plt.grid()
+plt.xscale('log')
+plt.yscale('log')
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
+plt.tight_layout()
+plt.savefig('european_put_option_SE_diff_seed_zoom_FD.pdf', format="pdf")
+plt.show()

@@ -51,7 +51,7 @@ def STD_FDM(set_1, set_2, bump, n_sim):
 
     cov = cov_matrix[0][1]
     
-    total_SE = np.sqrt((var_1 + var_2 + 2*cov)/np.square(bump))/np.sqrt(n_sim)
+    total_SE = np.sqrt((var_1 + var_2 - 2*cov)/np.square(bump))/np.sqrt(n_sim)
     
     return total_SE
 
@@ -65,7 +65,7 @@ def STD_CDM(set_1, set_2, bump, n_sim):
     
     cov = cov_matrix[0][1]
     
-    total_SE = np.sqrt((var_1 + var_2 + 2*cov)/np.square(2*bump))/np.sqrt(n_sim)
+    total_SE = np.sqrt((var_1 + var_2 - 2*cov)/np.square(2*bump))/np.sqrt(n_sim)
     
     return total_SE
 
@@ -80,13 +80,14 @@ n_sim = 10**5
 
 #################### Bump and Revalue - Using Same Seed #######################
 
-bumps = np.linspace(0.0001, 0.5, 1000)
+bumps = np.linspace(0.0001, 0.1, 1000)
 
 analytical = AnalyticalDigitalDelta(S0, K, r, T, sigma)*np.ones(len(bumps))
 
 seed = 0
 np.random.seed(seed)
 Z  = np.random.normal(size=n_sim)
+Z1  = np.random.normal(size=n_sim)
 base_value = DigitalMonteCarlo(S0, r, T, K, sigma, n_sim, Z)
 base_avg = np.mean(base_value)
 
@@ -102,8 +103,8 @@ for h in bumps:
     
     S_f = S0 + S0*h
     S_b = S0 - S0*h
-
-    bumped_values = DigitalMonteCarlo(S_f, r, T, K, sigma, n_sim, Z)
+    
+    bumped_values = DigitalMonteCarlo(S_f, r, T, K, sigma, n_sim, Z1)
     bump_avg = np.mean(bumped_values)
     
     backward_bump_values= DigitalMonteCarlo(S_b, r, T, K, sigma, n_sim, Z)
@@ -123,10 +124,10 @@ for h in bumps:
 plt.plot(bumps*100, analytical, color='black', label='Analytical', linestyle='dashed')
 
 plt.plot(bumps*100, FDM_delta, color='C0', label='Forward Difference')
-# plt.fill_between(bumps*100, FDM_delta + FDM_std, FDM_delta - FDM_std, color='C0', alpha = 0.5)
+plt.fill_between(bumps*100, FDM_delta + FDM_std, FDM_delta - FDM_std, color='C0', alpha = 0.5)
 
 plt.plot(bumps*100, CDM_delta, color='green', label='Central Difference')
-# plt.fill_between(bumps*100, CDM_delta + CDM_std, CDM_delta - CDM_std, color='green', alpha = 0.5)
+plt.fill_between(bumps*100, CDM_delta + CDM_std, CDM_delta - CDM_std, color='green', alpha = 0.5)
 
 plt.xlabel('h [%]',fontsize=16)
 plt.ylabel(r'$\Delta_{0}$',fontsize=16)
@@ -136,7 +137,7 @@ plt.xticks(fontsize=16)
 plt.yticks(fontsize=16)
 plt.grid()
 plt.tight_layout()
-# plt.savefig('digital_bump_delta_same_seed.pdf', format="pdf")
+plt.savefig('digital_bump_delta_diff_seed.pdf', format="pdf")
 plt.show()
 
 plt.plot(bumps*100, FDM_std, color='C0', label='Forward Difference')
@@ -150,7 +151,7 @@ plt.yscale('log')
 plt.xticks(fontsize=16)
 plt.yticks(fontsize=16)
 plt.tight_layout()
-# plt.savefig('digital_bump_SE_same_seed.pdf', format="pdf")
+plt.savefig('digital_bump_SE_diff_seed.pdf', format="pdf")
 plt.show()
 
 ####################### PathwiseDerivative Estimate ###########################
