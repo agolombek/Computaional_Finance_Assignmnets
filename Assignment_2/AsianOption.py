@@ -32,19 +32,55 @@ def Black_Scholes(S0, r, N, T, sigma, seed, n_sim, Z_matrix):
 @njit
 def EvaluateAsianOption(S_matrix, N, r, T, n_sim):
     
-    values = np.zeros(n_sim)
+    geo_values = np.zeros(n_sim)
+    arit_values = np.zeros(n_sim)
     i = 0
     
     for S_values in S_matrix:
-        geometric_average = np.exp(np.log(S_values).mean())
-        payoff = np.maximum(geometric_average-K, 0)
-        value = payoff*np.exp(-r*T)
         
-        values[i] = value
+        geo_average = np.exp(np.log(S_values).mean())
+        geo_payoff = np.maximum(geo_average-K, 0)
+        geo_value = geo_payoff*np.exp(-r*T)
+        geo_values[i] = geo_value
+        
+        arit_average = np.mean(S_values)
+        arit_payoff = np.maximum(arit_average-K, 0)
+        arit_value = arit_payoff*np.exp(-r*T)
+        arit_values[i] = arit_value
+        
         i += 1
     
-    return values
+    return geo_values, arit_values
 
+@njit
+def Control_Variates(geo_values, arit_values, n_sim, analytical):
+    
+    cov_matrix = np.cov(np.stack((geo_values, arit_values)))
+    
+    geo_mean = np.mean(geo_values)
+    geo_var = cov_matrix[0][0]
+    geo_SE = np.sqrt(geo_var/n_sim)
+    
+    arit_mean = np.mean(arit_values)
+    arit_var = cov_matrix[1][1]
+    arit_SE = np.sqrt(arit_var/n_sim)
+    
+    co_var = cov_matrix[0][1]
+    
+    c = -co_var/geo_var
+    
+    z_mean = arit_mean + c*(geo_mean - analytical)
+    z_var = arit_var + np.square(c)*geo_var + 2*c*co_var
+    z_SE = np.sqrt(z_var/n_sim)
+    
+    z_values = arit_values + c*(geo_values-analytical)
+    z_mean1 = np.mean(z_values)
+    # print(z_mean, z_mean1)
+    # print(z_var, np.square(np.std(z_values)))
+    
+    return geo_mean, arit_mean, z_mean, geo_SE, arit_SE, z_SE
+    
+    
 def AsianOptionValueAnalytical(S0, r, T, sigma, N):
     
     sigma_tilde =  sigma*np.sqrt((2*N+1)/(6*(N+1)))
@@ -67,12 +103,19 @@ N = 10**4
 
 analytical = AsianOptionValueAnalytical(S0, r, T, sigma, N)
 
-########## Test convergence for different number of simulations ###############
+
+######################## Test Control Variates ###########################
 
 num_sims = np.logspace(1, 4, 50)
 
-mean = np.zeros(len(num_sims))
-SE =  np.zeros(len(num_sims))
+geo_means = np.zeros(len(num_sims))
+geo_SEs =  np.zeros(len(num_sims))
+
+arit_means = np.zeros(len(num_sims))
+arit_SEs =  np.zeros(len(num_sims))
+
+Z_means = np.zeros(len(num_sims))
+Z_SEs =  np.zeros(len(num_sims))
 
 seed = 0
 i = 0
@@ -86,26 +129,64 @@ for n_sim in num_sims:
     
     S_matrix = Black_Scholes(S0, r, N, T, sigma, seed, n_sim, Z_matrix)
     
-    values = EvaluateAsianOption(S_matrix, N, r, T, n_sim)
+    geo_values, arit_values = EvaluateAsianOption(S_matrix, N, r, T, n_sim)
     
-    mean[i] = np.mean(values)
-    SE[i] = np.std(values)/np.sqrt(n_sim)
+
+    geo_mean, arit_mean, z_mean, geo_SE, arit_SE, z_SE = Control_Variates(geo_values, arit_values, n_sim, analytical)
+    
+    geo_means[i] = geo_mean
+    geo_SEs[i] = geo_SE
+
+    arit_means[i] = arit_mean
+    arit_SEs[i] = arit_SE
+
+    Z_means[i] = z_mean
+    Z_SEs[i] = z_SE
     
     seed += 1
     i += 1
 
 plt.plot(num_sims, analytical*np.ones(len(num_sims)), color='black', label='Analytical', linestyle='dashed')
-plt.plot(num_sims, mean, color='C0', label='Monte Carlo')
-plt.fill_between(num_sims, mean + SE, mean - SE, color='C0', alpha = 0.5) 
-plt.xlabel('Number of Simulations',fontsize=12)
-plt.ylabel(r'$V_{0}$',fontsize=12)
+plt.plot(num_sims, geo_means, color='C0', label='Monte Carlo')
+plt.fill_between(num_sims, geo_means + geo_SEs, geo_means - geo_SEs, color='C0', alpha = 0.5) 
+plt.xlabel('Number of Simulations',fontsize=16)
+plt.ylabel(r'$V_{0}$',fontsize=16)
 plt.xscale('log')
-plt.legend()
-# plt.xticks(fontsize=12)
-# plt.yticks(fontsize=12)
+plt.legend(fontsize=14)
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
 plt.grid()
 plt.tight_layout()
 # plt.savefig('asian_call_option_varying_nsim.pdf', format="pdf")
 plt.show()
 
-# Test convergence using different values for time steps
+plt.plot(num_sims, geo_means, color='C0', label='Geometric')
+plt.plot(num_sims, arit_means, color='green', label='Arithmetic')
+plt.plot(num_sims, Z_means, color='red', label='CV')
+plt.xlabel('Number of Simulations',fontsize=16)
+plt.ylabel(r'$V_{0}$',fontsize=16)
+plt.xscale('log')
+plt.legend(fontsize=14)
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
+plt.grid()
+plt.tight_layout()
+# plt.savefig('asian_call_option_varying_nsim.pdf', format="pdf")
+plt.show()
+
+plt.plot(num_sims, geo_SEs, color='C0', label='Geometric')
+plt.plot(num_sims, arit_SEs, color='green', label='Arithmetic')
+plt.plot(num_sims, Z_SEs, color='red', label='CV')
+plt.xlabel('Number of Simulations',fontsize=16)
+plt.ylabel('Standard Error',fontsize=16)
+plt.xscale('log')
+plt.yscale('log')
+plt.legend(fontsize=14)
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
+plt.grid()
+plt.tight_layout()
+# plt.savefig('asian_call_option_varying_nsim.pdf', format="pdf")
+plt.show()
+
+
