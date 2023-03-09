@@ -81,7 +81,7 @@ def Control_Variates(geo_values, arit_values, n_sim, analytical):
     return geo_mean, arit_mean, z_mean, geo_SE, arit_SE, z_SE
     
     
-def AsianOptionValueAnalytical(S0, r, T, sigma, N):
+def AsianOptionValueAnalytical(S0, r, T, sigma, N, K):
     
     sigma_tilde =  sigma*np.sqrt((2*N+1)/(6*(N+1)))
     r_tilde = (r - 0.5*np.square(sigma) + np.square(sigma_tilde))/2
@@ -93,6 +93,9 @@ def AsianOptionValueAnalytical(S0, r, T, sigma, N):
     
     return value
     
+
+######################## Varying number of Paths #############################
+
 sigma = 0.2
 S0 = 100
 K = 99
@@ -101,10 +104,7 @@ r = 0.06
 
 N = 10**4
 
-analytical = AsianOptionValueAnalytical(S0, r, T, sigma, N)
-
-
-######################## Test Control Variates ###########################
+analytical = AsianOptionValueAnalytical(S0, r, T, sigma, N, K)
 
 num_sims = np.logspace(1, 4, 50)
 
@@ -147,8 +147,8 @@ for n_sim in num_sims:
     i += 1
 
 plt.plot(num_sims, analytical*np.ones(len(num_sims)), color='black', label='Analytical', linestyle='dashed')
-plt.plot(num_sims, geo_means, color='C0', label='Monte Carlo')
-plt.fill_between(num_sims, geo_means + geo_SEs, geo_means - geo_SEs, color='C0', alpha = 0.5) 
+plt.plot(num_sims, geo_means, color='C0', label='Monte Carlo - Geometric Average')
+plt.fill_between(num_sims, geo_means + geo_SEs, geo_means - geo_SEs, color='C0', alpha = 0.2) 
 plt.xlabel('Number of Simulations',fontsize=16)
 plt.ylabel(r'$V_{0}$',fontsize=16)
 plt.xscale('log')
@@ -157,12 +157,15 @@ plt.xticks(fontsize=16)
 plt.yticks(fontsize=16)
 plt.grid()
 plt.tight_layout()
-# plt.savefig('asian_call_option_varying_nsim.pdf', format="pdf")
+# plt.savefig('geometric_monte_carlo_convergence.pdf', format="pdf")
 plt.show()
 
-plt.plot(num_sims, geo_means, color='C0', label='Geometric')
-plt.plot(num_sims, arit_means, color='green', label='Arithmetic')
-plt.plot(num_sims, Z_means, color='red', label='CV')
+plt.plot(num_sims, geo_means, color='C0', label='Geometric Average')
+plt.fill_between(num_sims, geo_means + geo_SEs, geo_means - geo_SEs, color='C0', alpha = 0.2) 
+plt.plot(num_sims, arit_means, color='green', label='Arithmetic Average')
+plt.fill_between(num_sims, arit_means + arit_SEs, arit_means - arit_SEs, color='green', alpha = 0.2) 
+plt.plot(num_sims, Z_means, color='red', label='Arithmetiv Avergae with CVs')
+plt.fill_between(num_sims, Z_means + Z_SEs, Z_means - Z_SEs, color='red', alpha = 0.2) 
 plt.xlabel('Number of Simulations',fontsize=16)
 plt.ylabel(r'$V_{0}$',fontsize=16)
 plt.xscale('log')
@@ -171,13 +174,112 @@ plt.xticks(fontsize=16)
 plt.yticks(fontsize=16)
 plt.grid()
 plt.tight_layout()
-# plt.savefig('asian_call_option_varying_nsim.pdf', format="pdf")
+# plt.savefig('control_variates_pricing_varying_nsim.pdf', format="pdf")
 plt.show()
 
-plt.plot(num_sims, geo_SEs, color='C0', label='Geometric')
-plt.plot(num_sims, arit_SEs, color='green', label='Arithmetic')
-plt.plot(num_sims, Z_SEs, color='red', label='CV')
+plt.plot(num_sims, geo_SEs, color='C0', label='Geometric Average')
+plt.plot(num_sims, arit_SEs, color='green', label='Arithmetic Average')
+plt.plot(num_sims, Z_SEs, color='red', label='Arithmetiv Avergae with CVs')
 plt.xlabel('Number of Simulations',fontsize=16)
+plt.ylabel('Standard Error',fontsize=16)
+plt.xscale('log')
+plt.yscale('log')
+plt.legend(fontsize=14, loc='upper right')
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
+plt.grid()
+plt.tight_layout()
+# plt.savefig('control_variates_SE_varying_nsim.pdf', format="pdf")
+plt.show()
+
+###################### Varying number of Time Points ##########################
+
+sigma = 0.2
+S0 = 100
+K = 99
+T = 1
+r = 0.06
+
+n_sim = 10**3
+N_range = np.logspace(1,5,50)
+
+
+analytical = np.zeros(len(N_range))
+
+geo_means = np.zeros(len(N_range))
+geo_SEs =  np.zeros(len(N_range))
+
+arit_means = np.zeros(len(N_range))
+arit_SEs =  np.zeros(len(N_range))
+
+Z_means = np.zeros(len(N_range))
+Z_SEs =  np.zeros(len(N_range))
+
+seed = 0
+i = 0
+
+for N in N_range:
+
+    N = int(N)
+    np.random.seed(seed)
+    
+    Z_matrix = np.random.normal(size=(n_sim, N))
+    
+    S_matrix = Black_Scholes(S0, r, N, T, sigma, seed, n_sim, Z_matrix)
+    
+    analytical[i] = AsianOptionValueAnalytical(S0, r, T, sigma, N, K)
+    
+    geo_values, arit_values = EvaluateAsianOption(S_matrix, N, r, T, n_sim)
+    
+    geo_mean, arit_mean, z_mean, geo_SE, arit_SE, z_SE = Control_Variates(geo_values, arit_values, n_sim, analytical[i])
+    
+    geo_means[i] = geo_mean
+    geo_SEs[i] = geo_SE
+
+    arit_means[i] = arit_mean
+    arit_SEs[i] = arit_SE
+
+    Z_means[i] = z_mean
+    Z_SEs[i] = z_SE
+    
+    seed += 1
+    i += 1
+
+plt.plot(N_range, analytical, color='black', label='Analytical', linestyle='dashed')
+plt.plot(N_range, geo_means, color='C0', label='Monte Carlo - Geometric Average')
+plt.fill_between(N_range, geo_means + geo_SEs, geo_means - geo_SEs, color='C0', alpha = 0.2) 
+plt.xlabel('Number of Time Points',fontsize=16)
+plt.ylabel(r'$V_{0}$',fontsize=16)
+plt.xscale('log')
+plt.legend(fontsize=14)
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
+plt.grid()
+plt.tight_layout()
+# plt.savefig('geometric_monte_carlo_convergence_timesteps.pdf', format="pdf")
+plt.show()
+
+plt.plot(N_range, geo_means, color='C0', label='Geometric Average')
+plt.fill_between(N_range, geo_means + geo_SEs, geo_means - geo_SEs, color='C0', alpha = 0.2) 
+plt.plot(N_range, arit_means, color='green', label='Arithmetic Average')
+plt.fill_between(N_range, arit_means + arit_SEs, arit_means - arit_SEs, color='green', alpha = 0.2) 
+plt.plot(N_range, Z_means, color='red', label='Arithmetiv Avergae with CVs')
+plt.fill_between(N_range, Z_means + Z_SEs, Z_means - Z_SEs, color='red', alpha = 0.2) 
+plt.xlabel('Number of Time Points',fontsize=16)
+plt.ylabel(r'$V_{0}$',fontsize=16)
+plt.xscale('log')
+plt.legend(fontsize=14)
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
+plt.grid()
+plt.tight_layout()
+# plt.savefig('control_variates_pricing_varying_timesteps.pdf', format="pdf")
+plt.show()
+
+plt.plot(N_range, geo_SEs, color='C0', label='Geometric Average')
+plt.plot(N_range, arit_SEs, color='green', label='Arithmetic Average')
+plt.plot(N_range, Z_SEs, color='red', label='Arithmetiv Avergae with CVs')
+plt.xlabel('Number of Time Points',fontsize=16)
 plt.ylabel('Standard Error',fontsize=16)
 plt.xscale('log')
 plt.yscale('log')
@@ -186,7 +288,104 @@ plt.xticks(fontsize=16)
 plt.yticks(fontsize=16)
 plt.grid()
 plt.tight_layout()
-# plt.savefig('asian_call_option_varying_nsim.pdf', format="pdf")
+# plt.savefig('control_variates_SE_varying_timesteps.pdf', format="pdf")
 plt.show()
 
+######################### Varying Strike Prices #############################
 
+sigma = 0.2
+S0 = 100
+K = 99
+T = 1
+r = 0.06
+n_sim = 10**3
+N = 10**2
+
+K_range = np.linspace(1, 200, 199)
+
+analytical = np.zeros(len(K_range))
+
+geo_means = np.zeros(len(K_range))
+geo_SEs =  np.zeros(len(K_range))
+
+arit_means = np.zeros(len(K_range))
+arit_SEs =  np.zeros(len(K_range))
+
+Z_means = np.zeros(len(K_range))
+Z_SEs =  np.zeros(len(K_range))
+
+seed = 0
+i = 0
+
+for K in K_range:
+
+    K = int(K)
+    np.random.seed(seed)
+    
+    Z_matrix = np.random.normal(size=(n_sim, N))
+    
+    S_matrix = Black_Scholes(S0, r, N, T, sigma, seed, n_sim, Z_matrix)
+    
+    analytical[i] = AsianOptionValueAnalytical(S0, r, T, sigma, N, K)
+    
+    geo_values, arit_values = EvaluateAsianOption(S_matrix, N, r, T, n_sim)
+    
+    geo_mean, arit_mean, z_mean, geo_SE, arit_SE, z_SE = Control_Variates(geo_values, arit_values, n_sim, analytical[i])
+    
+    geo_means[i] = geo_mean
+    geo_SEs[i] = geo_SE
+
+    arit_means[i] = arit_mean
+    arit_SEs[i] = arit_SE
+
+    Z_means[i] = z_mean
+    Z_SEs[i] = z_SE
+    
+    seed += 1
+    i += 1
+
+plt.plot(K_range, analytical, color='black', label='Analytical', linestyle='dashed')
+plt.plot(K_range, geo_means, color='C0', label='Monte Carlo - Geometric Average')
+plt.fill_between(K_range, geo_means + geo_SEs, geo_means - geo_SEs, color='C0', alpha = 0.2) 
+plt.xlabel('K',fontsize=16)
+plt.ylabel(r'$V_{0}$',fontsize=16)
+plt.xscale('log')
+plt.legend(fontsize=14)
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
+plt.grid()
+plt.tight_layout()
+# plt.savefig('geometric_monte_carlo_convergence_K.pdf', format="pdf")
+plt.show()
+
+plt.plot(K_range, geo_means, color='C0', label='Geometric Average')
+plt.fill_between(K_range, geo_means + geo_SEs, geo_means - geo_SEs, color='C0', alpha = 0.2) 
+plt.plot(K_range, arit_means, color='green', label='Arithmetic Average')
+plt.fill_between(K_range, arit_means + arit_SEs, arit_means - arit_SEs, color='green', alpha = 0.2) 
+plt.plot(K_range, Z_means, color='red', label='Arithmetiv Avergae with CVs')
+plt.fill_between(K_range, Z_means + Z_SEs, Z_means - Z_SEs, color='red', alpha = 0.2) 
+plt.xlabel('K',fontsize=16)
+plt.ylabel(r'$V_{0}$',fontsize=16)
+plt.xscale('log')
+plt.legend(fontsize=14)
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
+plt.grid()
+plt.tight_layout()
+# plt.savefig('control_variates_pricing_varying_K.pdf', format="pdf")
+plt.show()
+
+plt.plot(K_range, geo_SEs, color='C0', label='Geometric Average')
+plt.plot(K_range, arit_SEs, color='green', label='Arithmetic Average')
+plt.plot(K_range, Z_SEs, color='red', label='Arithmetiv Avergae with CVs')
+plt.xlabel('Ks',fontsize=16)
+plt.ylabel('Standard Error',fontsize=16)
+plt.xscale('log')
+plt.yscale('log')
+plt.legend(fontsize=14)
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
+plt.grid()
+plt.tight_layout()
+# plt.savefig('control_variates_SE_varying_K.pdf', format="pdf")
+plt.show()
