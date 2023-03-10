@@ -349,7 +349,7 @@ plt.plot(K_range, geo_means, color='C0', label='Monte Carlo - Geometric Average'
 plt.fill_between(K_range, geo_means + geo_SEs, geo_means - geo_SEs, color='C0', alpha = 0.2) 
 plt.xlabel('K',fontsize=16)
 plt.ylabel(r'$V_{0}$',fontsize=16)
-plt.xscale('log')
+# plt.xscale('log')
 plt.legend(fontsize=14)
 plt.xticks(fontsize=16)
 plt.yticks(fontsize=16)
@@ -375,14 +375,12 @@ plt.tight_layout()
 # plt.savefig('control_variates_pricing_varying_K.pdf', format="pdf")
 plt.show()
 
-plt.plot(K_range, geo_means - analytical, color='C0', label='Geometric Average')
-plt.fill_between(K_range, geo_means - analytical + geo_SEs, geo_means - analytical - geo_SEs, color='C0', alpha = 0.2) 
-plt.plot(K_range, arit_means - analytical, color='green', label='Arithmetic Average')
-plt.fill_between(K_range, arit_means - analytical + arit_SEs, arit_means - analytical - arit_SEs, color='green', alpha = 0.2) 
-plt.plot(K_range, Z_means - analytical, color='red', label='Arithmetic Average with CVs')
-plt.fill_between(K_range, Z_means - analytical + Z_SEs, Z_means - analytical - Z_SEs, color='red', alpha = 0.2) 
-plt.xlabel('K',fontsize=16)
-plt.ylabel(r'$Difference: V_{0} - analytical$',fontsize=16)
+
+plt.plot(K_range, geo_SEs, color='C0', label='Geometric Average')
+plt.plot(K_range, arit_SEs, color='green', label='Arithmetic Average')
+plt.plot(K_range, Z_SEs, color='red', label='Arithmetiv Avergae with CVs')
+plt.xlabel('Ks',fontsize=16)
+plt.ylabel('Standard Error',fontsize=16)
 # plt.xscale('log')
 # plt.yscale('log')
 plt.legend(fontsize=14)
@@ -390,20 +388,105 @@ plt.xticks(fontsize=16)
 plt.yticks(fontsize=16)
 plt.grid()
 plt.tight_layout()
-# plt.savefig('control_variates_pricing_varying_K_diff.pdf', format="pdf")
+# plt.savefig('control_variates_SE_varying_K.pdf', format="pdf")
 plt.show()
 
-plt.plot(K_range, geo_SEs, color='C0', label='Geometric Average')
-plt.plot(K_range, arit_SEs, color='green', label='Arithmetic Average')
-plt.plot(K_range, Z_SEs, color='red', label='Arithmetiv Avergae with CVs')
-plt.xlabel('Ks',fontsize=16)
-plt.ylabel('Standard Error',fontsize=16)
-plt.xscale('log')
-plt.yscale('log')
+######################### Varying Volatility ################################
+
+# sigma = 0.2
+S0 = 100
+K = 99
+K = 99
+T = 1
+r = 0.06
+n_sim = 10**3
+N = 10**2
+
+volatilities = np.linspace(0.01, 1, 50)
+
+analytical = np.zeros(len(volatilities))
+
+geo_means = np.zeros(len(volatilities))
+geo_SEs =  np.zeros(len(volatilities))
+
+arit_means = np.zeros(len(volatilities))
+arit_SEs =  np.zeros(len(volatilities))
+
+Z_means = np.zeros(len(volatilities))
+Z_SEs =  np.zeros(len(volatilities))
+
+seed = 0
+i = 0
+
+for sigma in volatilities:
+
+    np.random.seed(seed)
+    
+    Z_matrix = np.random.normal(size=(n_sim, N))
+    
+    S_matrix = Black_Scholes(S0, r, N, T, sigma, seed, n_sim, Z_matrix)
+    
+    analytical[i] = AsianOptionValueAnalytical(S0, r, T, sigma, N, K)
+    
+    geo_values, arit_values = EvaluateAsianOption(S_matrix, N, r, T, n_sim, K)
+    
+    geo_mean, arit_mean, z_mean, geo_SE, arit_SE, z_SE = Control_Variates(geo_values, arit_values, n_sim, analytical[i])
+    
+    geo_means[i] = geo_mean
+    geo_SEs[i] = geo_SE
+
+    arit_means[i] = arit_mean
+    arit_SEs[i] = arit_SE
+
+    Z_means[i] = z_mean
+    Z_SEs[i] = z_SE
+    
+    seed += 1
+    i += 1
+
+plt.plot(volatilities, analytical, color='black', label='Analytical', linestyle='dashed')
+plt.plot(volatilities, geo_means, color='C0', label='Monte Carlo - Geometric Average')
+plt.fill_between(volatilities, geo_means + geo_SEs, geo_means - geo_SEs, color='C0', alpha = 0.2) 
+plt.xlabel(r'$\sigma$',fontsize=16)
+plt.ylabel(r'$V_{0}$',fontsize=16)
+# plt.xscale('log')
 plt.legend(fontsize=14)
 plt.xticks(fontsize=16)
 plt.yticks(fontsize=16)
 plt.grid()
 plt.tight_layout()
-# plt.savefig('control_variates_SE_varying_K.pdf', format="pdf")
+plt.savefig('geometric_monte_carlo_convergence_sigma.pdf', format="pdf")
+plt.show()
+
+plt.plot(volatilities, geo_means, color='C0', label='Geometric Average')
+plt.fill_between(volatilities, geo_means + geo_SEs, geo_means - geo_SEs, color='C0', alpha = 0.2) 
+plt.plot(volatilities, arit_means, color='green', label='Arithmetic Average')
+plt.fill_between(volatilities, arit_means + arit_SEs, arit_means - arit_SEs, color='green', alpha = 0.2) 
+plt.plot(volatilities, Z_means, color='red', label='Arithmetiv Avergae with CVs')
+plt.fill_between(volatilities, Z_means + Z_SEs, Z_means - Z_SEs, color='red', alpha = 0.2) 
+plt.xlabel(r'$\sigma$',fontsize=16)
+plt.ylabel(r'$V_{0}$',fontsize=16)
+# plt.xscale('log')
+plt.legend(fontsize=14)
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
+plt.grid()
+plt.tight_layout()
+plt.savefig('control_variates_pricing_varying_sigma.pdf', format="pdf")
+plt.show()
+
+
+plt.plot(volatilities, geo_SEs, color='C0', label='Geometric Average')
+plt.plot(volatilities, arit_SEs, color='green', label='Arithmetic Average')
+plt.plot(volatilities, Z_SEs, color='red', label='Arithmetiv Avergae with CVs')
+plt.xlabel(r'$\sigma$',fontsize=16)
+plt.ylabel('Standard Error',fontsize=16)
+# plt.xscale('log')
+# plt.yscale('log')
+plt.legend(fontsize=14)
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
+plt.grid()
+plt.tight_layout()
+plt.savefig('control_variates_SE_varying_sigma.pdf', format="pdf")
 plt.show()
