@@ -301,7 +301,7 @@ r = 0.06
 n_sim = 10**3
 N = 10**2
 
-K_range = np.linspace(20, 200, 181)
+K_range = np.linspace(50, 140, 91)
 
 analytical = np.zeros(len(K_range))
 
@@ -373,6 +373,24 @@ plt.yticks(fontsize=16)
 plt.grid()
 plt.tight_layout()
 # plt.savefig('control_variates_pricing_varying_K.pdf', format="pdf")
+plt.show()
+
+plt.plot(K_range, geo_means - analytical, color='C0', label='Geometric Average')
+plt.fill_between(K_range, geo_means - analytical + geo_SEs, geo_means - analytical - geo_SEs, color='C0', alpha = 0.2) 
+plt.plot(K_range, arit_means - analytical, color='green', label='Arithmetic Average')
+plt.fill_between(K_range, arit_means - analytical + arit_SEs, arit_means - analytical - arit_SEs, color='green', alpha = 0.2) 
+plt.plot(K_range, Z_means - analytical, color='red', label='Arithmetic Average with CVs')
+plt.fill_between(K_range, Z_means - analytical + Z_SEs, Z_means - analytical - Z_SEs, color='red', alpha = 0.2) 
+plt.xlabel('K',fontsize=16)
+plt.ylabel(r'$Difference: V_{0} - analytical$',fontsize=16)
+# plt.xscale('log')
+# plt.yscale('log')
+plt.legend(fontsize=14)
+plt.xticks(fontsize=16)
+plt.yticks(fontsize=16)
+plt.grid()
+plt.tight_layout()
+# plt.savefig('control_variates_pricing_varying_K_diff.pdf', format="pdf")
 plt.show()
 
 plt.plot(K_range, geo_SEs, color='C0', label='Geometric Average')
