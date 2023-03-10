@@ -30,7 +30,7 @@ def Black_Scholes(S0, r, N, T, sigma, seed, n_sim, Z_matrix):
     return S_matrix
 
 @njit
-def EvaluateAsianOption(S_matrix, N, r, T, n_sim):
+def EvaluateAsianOption(S_matrix, N, r, T, n_sim, K):
     
     geo_values = np.zeros(n_sim)
     arit_values = np.zeros(n_sim)
@@ -129,7 +129,7 @@ for n_sim in num_sims:
     
     S_matrix = Black_Scholes(S0, r, N, T, sigma, seed, n_sim, Z_matrix)
     
-    geo_values, arit_values = EvaluateAsianOption(S_matrix, N, r, T, n_sim)
+    geo_values, arit_values = EvaluateAsianOption(S_matrix, N, r, T, n_sim, K)
     
 
     geo_mean, arit_mean, z_mean, geo_SE, arit_SE, z_SE = Control_Variates(geo_values, arit_values, n_sim, analytical)
@@ -229,7 +229,7 @@ for N in N_range:
     
     analytical[i] = AsianOptionValueAnalytical(S0, r, T, sigma, N, K)
     
-    geo_values, arit_values = EvaluateAsianOption(S_matrix, N, r, T, n_sim)
+    geo_values, arit_values = EvaluateAsianOption(S_matrix, N, r, T, n_sim, K)
     
     geo_mean, arit_mean, z_mean, geo_SE, arit_SE, z_SE = Control_Variates(geo_values, arit_values, n_sim, analytical[i])
     
@@ -301,7 +301,7 @@ r = 0.06
 n_sim = 10**3
 N = 10**2
 
-K_range = np.linspace(1, 200, 199)
+K_range = np.linspace(20, 200, 181)
 
 analytical = np.zeros(len(K_range))
 
@@ -328,7 +328,7 @@ for K in K_range:
     
     analytical[i] = AsianOptionValueAnalytical(S0, r, T, sigma, N, K)
     
-    geo_values, arit_values = EvaluateAsianOption(S_matrix, N, r, T, n_sim)
+    geo_values, arit_values = EvaluateAsianOption(S_matrix, N, r, T, n_sim, K)
     
     geo_mean, arit_mean, z_mean, geo_SE, arit_SE, z_SE = Control_Variates(geo_values, arit_values, n_sim, analytical[i])
     
