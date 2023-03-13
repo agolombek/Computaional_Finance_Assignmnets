@@ -13,7 +13,6 @@ from matplotlib import cm
 from scipy.sparse import diags, SparseEfficiencyWarning
 
 
-# @njit
 def FTCS_matrix(T, N, S_min, S_max, M, K, r, sigma):
     """
     T = maturity time
@@ -27,8 +26,7 @@ def FTCS_matrix(T, N, S_min, S_max, M, K, r, sigma):
     
     X_min = np.log(S_min)
     X_max = np.log(S_max)
-    print(X_min, X_max)
-    
+
     dx = (X_max-X_min)/M
     dt = T/N 
     
@@ -43,18 +41,17 @@ def FTCS_matrix(T, N, S_min, S_max, M, K, r, sigma):
     grid[-1][:] = S_max
     
     # at tau = 0 or t = T option price is max(S-K, 0)
-    x_boundary = np.maximum(np.exp(X[1:M-1])-K, 0)
-    X_boundary = np.maximum(np.exp(x_boundary)-K, 0)
+    x_boundary = np.exp(X[1:M-1])
+    X_boundary = np.maximum(x_boundary-K, 0)
 
     for j in range(1,M-1):
         grid[j][0] = x_boundary[j-1]
     
-    # Iterate over grid
+    # create A matrix
     a_minus_1 = (0.5*dt/dx)*(np.square(sigma)/dx-(r-0.5*np.square(sigma)))
     a0 = 1-np.square(sigma)*dt/dx
     a1 = (0.5*dt/dx)*(np.square(sigma)/dx+(r-0.5*np.square(sigma)))
     
-    # create A matrix
     diag_minus_1 = np.ones(M-1)*a_minus_1
     diag_minus_1[-1] = 0
     
@@ -73,9 +70,9 @@ def FTCS_matrix(T, N, S_min, S_max, M, K, r, sigma):
     
     # iterate over columns
     for i in range(1, N):
-        vn = grid[:][i-1]
+        vn = grid[:,0]
         vn1 = A.dot(vn) + k
-        grid[:][i] = vn1
+        grid[:,i] = vn1
 
 
     return time, X, grid
@@ -91,8 +88,8 @@ K = 110
 S_min = 10**(-4)
 S_max = 10**4
 
-N = 10**3
-M = 10**3
+N = 10**2
+M = 10**2
 
 time, X, grid = FTCS_matrix(T, N, S_min, S_max, M, K, r, sigma)
 
@@ -104,9 +101,6 @@ time = np.flip(time)
 
 X, Y = np.meshgrid(time, S)
 Z = grid
-
-sns.heatmap(Z)
-plt.show()
 
 fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
 surf = ax.plot_surface(X, Y, grid, cmap=cm.coolwarm, linewidth=0, antialiased=False)
