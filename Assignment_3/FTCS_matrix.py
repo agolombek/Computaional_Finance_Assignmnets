@@ -42,14 +42,14 @@ def FTCS_matrix(T, N, S_min, S_max, M, K, r, sigma):
     
     # at tau = 0 or t = T option price is max(S-K, 0)
     x_boundary = np.exp(X[1:M-1])
-    X_boundary = np.maximum(x_boundary-K, 0)
+    x_boundary = np.maximum(x_boundary-K, 0)
 
     for j in range(1,M-1):
-        grid[j][0] = x_boundary[j-1]
+        grid[j,0] = x_boundary[j-1]
     
     # create A matrix
     a_minus_1 = (0.5*dt/dx)*(np.square(sigma)/dx-(r-0.5*np.square(sigma)))
-    a0 = 1-np.square(sigma)*dt/dx
+    a0 = 1-np.square(sigma)*dt/np.square(dx)-r*dt
     a1 = (0.5*dt/dx)*(np.square(sigma)/dx+(r-0.5*np.square(sigma)))
     
     diag_minus_1 = np.ones(M-1)*a_minus_1
@@ -66,7 +66,7 @@ def FTCS_matrix(T, N, S_min, S_max, M, K, r, sigma):
     A = diags(diagonals, [-1, 0, 1])
     
     k = np.zeros(M)
-    k[-1] = np.exp(X_max)
+    k[-1] = S_max
     
     # iterate over columns
     for i in range(1, N):
@@ -85,11 +85,11 @@ sigma = 0.3
 S0 = 100
 K = 110
 
-S_min = 10**(-4)
-S_max = 10**4
+S_min = 10**(-3)
+S_max = 10**3
 
-N = 10**2
-M = 10**2
+N = 10**3
+M = 10**3
 
 time, X, grid = FTCS_matrix(T, N, S_min, S_max, M, K, r, sigma)
 
