@@ -70,7 +70,7 @@ def FTCS_matrix(T, N, S_min, S_max, M, K, r, sigma):
     
     # iterate over columns
     for i in range(1, N):
-        vn = grid[:,0]
+        vn = grid[:,i-1]
         vn1 = A.dot(vn) + k
         grid[:,i] = vn1
 
