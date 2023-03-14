@@ -86,8 +86,8 @@ time = np.flip(time)
 X, Y = np.meshgrid(time, S)
 Z = grid
 
-sns.heatmap(Z)
-plt.show()
+# sns.heatmap(Z)
+# plt.show()
 
 fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
 surf = ax.plot_surface(X, Y, grid, cmap=cm.coolwarm, linewidth=0, antialiased=False)

@@ -11,6 +11,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from scipy.sparse import diags, SparseEfficiencyWarning
+from scipy.stats import norm
 
 
 def FTCS_matrix(T, N, S_min, S_max, M, K, r, sigma):
@@ -22,7 +23,7 @@ def FTCS_matrix(T, N, S_min, S_max, M, K, r, sigma):
     r = risk free interest rate
     sigma = volatility
     """
-    grid = np.zeros((N, M))
+    grid = np.zeros((M, N))
     
     X_min = np.log(S_min)
     X_max = np.log(S_max)
@@ -77,7 +78,18 @@ def FTCS_matrix(T, N, S_min, S_max, M, K, r, sigma):
 
     return time, X, grid
     
-    
+
+def BlackScholesAnalytical(S, K, r, T, vol):
+    """
+    Caluclates the anayltical solution for the value of a European call option
+    given by the Black Scholes Equations.
+    """
+    d1 = (np.log(S/K) + (r+0.5*vol**2)*T)/(vol*np.sqrt(T))
+    d2 = d1 - vol*np.sqrt(T)
+    N_d1 = norm.cdf(d1)
+    N_d2 = norm.cdf(d2)
+    V = S*N_d1 - np.exp(-r*T)*K*N_d2
+    return V
     
 T = 1 
 r = 0.04
@@ -85,23 +97,53 @@ sigma = 0.3
 S0 = 100
 K = 110
 
-S_min = 10**(-3)
-S_max = 10**3
+S_min = 10**(-4)
+S_max = 10**4
 
 N = 10**3
 M = 10**3
 
 time, X, grid = FTCS_matrix(T, N, S_min, S_max, M, K, r, sigma)
 
-S = np.exp(X)
+############################# Compare to Analytical Solution ##################
+
+# extract final column i.e. tau = T, t = 0 from grid
+V0 = grid[:,-1]
+
+# extract tested X values and transform to S
+S0_FTCS = np.exp(X)
+
+# find analytical solution for corresponding S0 values
+analytical = []
+for S in S0_FTCS:
+    analytical.append(BlackScholesAnalytical(S, K, r, T, sigma))
+
+
+# plot FTCS and analytical solution
+plt.plot(S0_FTCS, V0, label='FTCS')
+plt.plot(S0_FTCS, analytical, label='BS')
+plt.legend()
+plt.grid()
+plt.xlabel('S0')
+plt.ylabel('V0')
+plt.show()
+
+# plot difference
+plt.plot(S0_FTCS, V0-np.array(analytical))
+plt.grid()
+plt.xlabel('S0')
+plt.ylabel('Difference')
+plt.show()
+
+# interpolarte FTCS array to find exact approximation at S0
+print(f"FTCS solution for S0 = {S0}: ", np.interp(S0, S0_FTCS, V0))
+print(f"analyticalsolution for S0 = {S0}: ", BlackScholesAnalytical(S0, K, r, T, sigma))
+
+######################## 3D Plot #############################################
+
 time = np.flip(time)
-
-# np.save(f"FTCS_T_{T}_r{r}_sigma{sigma}_S0_{S0}_K_{K}.npy",grid)
-# grid = np.load(f"FTCS_T_{T}_r{r}_sigma{sigma}_S0_{S0}_K_{K}.npy")
-
-X, Y = np.meshgrid(time, S)
+X, Y = np.meshgrid(time, np.exp(X))
 Z = grid
-
 fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
 surf = ax.plot_surface(X, Y, grid, cmap=cm.coolwarm, linewidth=0, antialiased=False)
 ax.set_xlabel('time [years]', fontsize=12, rotation=150)
